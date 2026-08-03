@@ -1,33 +1,89 @@
-# A Long-expected Party
+# 一场盼望已久的宴会 · A Long-expected Party
 
-A complete, self-contained Three.js scene that procedurally renders and animates
-the opening paragraph of *The Lord of the Rings* as a short "movie" in the browser:
+> [English version below](#english-version) ｜ 在线观看 / Live demo:
+> **https://brucelanlan.github.io/lotr-shire-party/**
 
-> When Mr. Bilbo Baggins of Bag End announced that he would shortly be
-> celebrating his eleventy-first birthday with a party of special magnificence,
-> there was much talk and excitement in Hobbiton.
+一个完整、自包含的 Three.js 场景：把《魔戒》开篇那段话，程序化地渲染成一部可以在浏览器里播放的"小电影"——
 
-Everything on screen is generated in code at load time — no textures, models,
-or other assets. One HTML file, one CDN import of Three.js.
+> 袋底洞的比尔博·巴金斯先生宣布，他不久将举办一场格外盛大的宴会，
+> 庆祝自己的一百一十一岁生日；霍比屯顿时议论纷纷，一片欢腾。
+
+页面上的一切都是加载时用代码生成的：没有贴图、没有模型、没有任何素材文件。
+单个 HTML 文件，仅从 CDN 引入一次 Three.js。
+
+## 场景里有什么
+
+- **袋底洞**——山丘上的圆形绿门、圆窗、烟囱里袅袅的炊烟
+- **霍比屯**——村舍（入夜后窗户会亮灯）、更小的斯密奥洞、花园花圃
+- **宴会场地**——条纹大帐篷、长桌、插着蜡烛的生日蛋糕、大宴会树、灯笼与串灯
+- **约 30 个霍比特人**——在门口挥手的比尔博、聚在一起议论的人群、小径上散步的、
+  兴奋得绕圈跑跳的孩子；烟花开始时所有人都会抬头
+- **完整的 白天→黄昏→夜晚 循环**，七个镜头，以一场烟花收尾
+
+## 播放器
+
+参照电影播放器的形式：上下黑边、暗角、镜头间淡入淡出、原文字幕，
+以及一条完整的控制栏：播放/暂停、上一镜头/下一镜头、带镜头刻度的进度条、
+时间码、CC（字幕）/ Sound（声音）/ Full（全屏）。
+
+| 按键 | 功能 |
+| --- | --- |
+| `空格` | 播放 / 暂停 |
+| `[` / `]` | 上一镜头 / 下一镜头 |
+| `c` | 字幕开关 |
+| `m` | 声音开关 |
+| `f` | 全屏 |
+
+声音同样全部由 WebAudio 实时合成（无音频文件）：风声、鸟鸣、人群嗡嗡声、
+火箭升空的哨音与爆炸声。
+
+## 深链
+
+- `?t=<秒>`：直接跳到某个时刻，例如 `?t=72` 直达烟花
+- `&autoplay`：跳过片头卡片直接开演
+- 例：`index.html?autoplay&t=72`
+
+## 本地运行
+
+直接用浏览器打开 `index.html`（需联网加载一次 Three.js CDN），或：
+
+```sh
+python3 -m http.server 8123
+open http://127.0.0.1:8123/
+```
+
+## 说明与致谢
+
+- 播放器外壳与整体形式参考
+  [karpathy.ai/lotr-movie](https://karpathy.ai/lotr-movie/)；
+  场景、动画、音频均为原创代码。
+- 字幕引用 J. R. R. Tolkien《魔戒同盟》开篇段落（即本项目要复现的提示词原文）。
+
+---
+
+# English version
+
+**A complete, self-contained Three.js scene that procedurally renders and animates
+the opening paragraph of *The Lord of the Rings* as a short movie in the browser.**
+Everything on screen is generated in code at load time — no textures, models, or
+other assets. One HTML file, one CDN import of Three.js.
 
 ## What's in the scene
 
 - **Bag End** — the Hill with its round green door, round windows, chimney smoke
-- **Hobbiton** — cottages with windows that light up at dusk, smaller smials, gardens
+- **Hobbiton** — cottages whose windows light up at dusk, smaller smials, gardens
 - **The party field** — striped marquees, long tables, an eleventy-first birthday
   cake with candles, the great Party Tree, lanterns and string lights
 - **~30 hobbits** — Bilbo waving at his door, gossip clusters, strollers on the
   path, excited children circling the field; everyone looks up for the fireworks
-- **A full day→dusk→night cycle** across seven shots, ending with a
-  deterministic fireworks finale (rockets, sphere/ring/willow bursts)
-- **Synthesized audio** (WebAudio, no files): wind, birdsong, crowd murmur,
-  rocket whistles and booms
+- **A full day→dusk→night cycle** across seven shots, ending with a deterministic
+  fireworks finale (rockets; sphere / ring / willow bursts)
 
 ## The player
 
 Modeled on a film player: letterbox bars, vignette, dips to black between shots,
-verbatim captions, and a transport with play/pause, previous/next shot, a
-scrubber with shot markers, timecode, CC / Sound / Fullscreen toggles.
+captions, and a transport with play/pause, previous/next shot, a scrubber with
+shot markers, timecode, and CC / Sound / Fullscreen toggles.
 
 | Key | Action |
 | --- | ------ |
@@ -37,8 +93,13 @@ scrubber with shot markers, timecode, CC / Sound / Fullscreen toggles.
 | `m` | sound on/off |
 | `f` | fullscreen |
 
-Deep links: `?t=<seconds>` seeks to a moment, `&autoplay` starts without the
-title card (e.g. `index.html?autoplay&t=72` goes straight to the fireworks).
+The audio is fully synthesized with WebAudio (no files): wind, birdsong, crowd
+murmur, rocket whistles and booms.
+
+## Deep links
+
+- `?t=<seconds>` seeks to a moment (e.g. `?t=72` goes straight to the fireworks)
+- `&autoplay` starts without the title card
 
 ## Run it
 
@@ -53,6 +114,6 @@ open http://127.0.0.1:8123/
 ## Credits
 
 Structure and player chrome inspired by
-[karpathy.ai/lotr-movie](https://karpathy.ai/lotr-movie/).
-Scene, animation, and audio are original code. Text captions quote the opening
-paragraph of J. R. R. Tolkien's *The Fellowship of the Ring*.
+[karpathy.ai/lotr-movie](https://karpathy.ai/lotr-movie/). Scene, animation, and
+audio are original code. Captions quote the opening paragraph of J. R. R.
+Tolkien's *The Fellowship of the Ring*.
