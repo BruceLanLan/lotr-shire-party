@@ -1,0 +1,1570 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>A Long-expected Party &middot; DeepSeek V4 Pro (0813)</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎉</text></svg>">
+<style>
+  :root { --bar: clamp(30px, 5.5vh, 76px); --ink: #efe6d4; }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; height: 100%; overflow: hidden;
+    background: #000; color: var(--ink);
+    font-family: Georgia, 'Iowan Old Style', 'Times New Roman', serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  #stage { position: fixed; inset: 0; }
+  canvas { display: block; width: 100%; height: 100%; }
+  #vignette {
+    position: fixed; inset: 0; z-index: 4; pointer-events: none;
+    background: radial-gradient(ellipse 84% 74% at 50% 46%, rgba(0,0,0,0) 55%, rgba(0,0,0,.45) 100%);
+  }
+  .bar { position: fixed; left: 0; right: 0; height: var(--bar); background: #000; z-index: 5; pointer-events: none; }
+  .bar.top { top: 0; }
+  .bar.bottom { bottom: 0; }
+  #fade { position: fixed; inset: 0; background: #000; z-index: 6; pointer-events: none; opacity: 0; }
+
+  #caption {
+    position: fixed; left: 50%; transform: translateX(-50%);
+    bottom: calc(var(--bar) + 4vh); width: min(78ch, 84vw); z-index: 7;
+    text-align: center; pointer-events: none;
+    font-size: clamp(15px, 2.05vh, 27px); line-height: 1.5;
+    color: #f6efe0; text-shadow: 0 1px 3px rgba(0,0,0,.95), 0 0 26px rgba(0,0,0,.85);
+    opacity: 0; transition: opacity .5s ease;
+  }
+  #caption.show { opacity: 1; }
+  body.nocap #caption { display: none; }
+
+  #title {
+    position: fixed; inset: 0; z-index: 20;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background: radial-gradient(ellipse at 50% 45%, #14100a 0%, #000 72%);
+    transition: opacity .9s ease;
+  }
+  #title.gone { opacity: 0; pointer-events: none; }
+  #title h1 {
+    margin: 0 0 .35em; font-weight: 400; letter-spacing: .16em;
+    font-size: clamp(22px, 4.6vh, 52px); text-transform: uppercase;
+    color: #f2e4c4; text-align: center; padding: 0 4vw;
+  }
+  #title .src {
+    margin: 0 0 2.4em; font-size: clamp(11px, 1.7vh, 16px);
+    letter-spacing: .09em; color: #9a8f79; font-style: italic; text-align: center; padding: 0 6vw;
+  }
+  #play {
+    appearance: none; border: 1px solid #6d6250; background: transparent;
+    color: #f2e4c4; font-family: inherit; letter-spacing: .22em;
+    font-size: clamp(11px, 1.6vh, 15px); text-transform: uppercase;
+    padding: .95em 2.9em; cursor: pointer; border-radius: 2px;
+    transition: background .25s, border-color .25s, color .25s;
+  }
+  #play:hover:not(:disabled) { background: #f2e4c4; color: #14100a; border-color: #f2e4c4; }
+  #play:disabled { opacity: .5; cursor: default; }
+  #hint { margin-top: 1.4em; font-size: 10.5px; letter-spacing: .18em; text-transform: uppercase; color: #6f6757; }
+
+  #ui {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 12;
+    padding: 12px clamp(12px, 3vw, 34px) clamp(10px, 1.6vh, 18px);
+    background: linear-gradient(to top, rgba(0,0,0,.82), rgba(0,0,0,0));
+    display: flex; align-items: center; gap: clamp(8px, 1.4vw, 18px);
+    opacity: 0; transition: opacity .35s ease; pointer-events: none;
+  }
+  #ui.show { opacity: 1; pointer-events: auto; }
+  body.titlemode #ui, body.recordmode #ui { display: none; }
+  body.hideui #ui { opacity: 0; pointer-events: none; }
+
+  #scrub { position: relative; flex: 1; height: 22px; cursor: pointer; display: flex; align-items: center; }
+  #track { position: relative; width: 100%; height: 3px; background: rgba(255,255,255,.2); }
+  #fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0%; background: #e8d9b4; }
+  #marks { position: absolute; inset: 0; pointer-events: none; }
+  #marks i { position: absolute; top: -3px; width: 1px; height: 9px; background: rgba(0,0,0,.75); }
+  #scrub:hover #track { height: 5px; }
+
+  .btn {
+    appearance: none; background: none; border: 0; color: var(--ink);
+    font-family: inherit; font-size: 12px; letter-spacing: .12em;
+    text-transform: uppercase; cursor: pointer; padding: 6px 8px; opacity: .78; white-space: nowrap;
+  }
+  .btn:hover { opacity: 1; }
+  .btn.on { color: #e8c96a; opacity: 1; }
+  #tc { font-size: 12px; letter-spacing: .08em; opacity: .72; font-variant-numeric: tabular-nums; }
+  #shotname { font-size: 11px; letter-spacing: .13em; text-transform: uppercase; opacity: .5; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 24vw; }
+  @media (max-width: 720px) { #shotname, .btn.hide-sm { display: none; } }
+</style>
+</head>
+<body class="titlemode">
+
+<div id="stage"><canvas id="c"></canvas></div>
+<div id="vignette"></div>
+<div class="bar top"></div>
+<div class="bar bottom"></div>
+<div id="fade"></div>
+<div id="caption"></div>
+
+<div id="ui">
+  <button class="btn" id="bPlay" title="Play / pause (space)">Play</button>
+  <button class="btn hide-sm" id="bPrev" title="Previous shot ([)">&#9664;&#9664;</button>
+  <button class="btn hide-sm" id="bNext" title="Next shot (])">&#9654;&#9654;</button>
+  <div id="scrub"><div id="track"><div id="fill"></div><div id="marks"></div></div></div>
+  <div id="tc">0:00 / 0:00</div>
+  <button class="btn on" id="bCap" title="Captions (c)">CC</button>
+  <button class="btn on" id="bSound" title="Sound (m)">Sound</button>
+  <button class="btn hide-sm" id="bFull" title="Fullscreen (f)">Full</button>
+  <div id="shotname"></div>
+</div>
+
+<div id="title">
+  <h1>A Long-expected Party</h1>
+  <p class="src">DeepSeek V4 Pro (0813) &mdash; after J.&nbsp;R.&nbsp;R.&nbsp;Tolkien, <em>The Fellowship of the Ring</em>, Book&nbsp;I, Chapter&nbsp;I</p>
+  <button id="play" disabled>Loading</button>
+  <div id="hint">space play &nbsp;&middot;&nbsp; [ ] shots &nbsp;&middot;&nbsp; c captions &nbsp;&middot;&nbsp; m sound &nbsp;&middot;&nbsp; f fullscreen</div>
+</div>
+
+<script type="importmap">
+{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js" } }
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+
+// ============================================================================
+// The whole film is a function of one number: film time t (seconds).
+// Every frame is recomputed from t, so the scrubber, the deep links and the
+// offline audio render all agree. Nothing is loaded from disk: the world,
+// the hobbits and every sound are built in code at load time.
+// ============================================================================
+
+const RECORD = new URLSearchParams(location.search).get('record') !== null;
+
+const TAU = Math.PI * 2;
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const lerp = (a, b, t) => a + (b - a) * t;
+const sstep = (t) => t * t * (3 - 2 * t);
+
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+const RNG = mulberry32(20260813);
+const rr = (a, b) => a + RNG() * (b - a);
+const pick = (arr) => arr[Math.floor(RNG() * arr.length)];
+
+function sched(stops) {
+  return (t) => {
+    if (t <= stops[0][0]) return stops[0][1];
+    for (let i = 1; i < stops.length; i++) {
+      if (t <= stops[i][0]) {
+        const [t0, v0] = stops[i - 1], [t1, v1] = stops[i];
+        return lerp(v0, v1, (t - t0) / (t1 - t0));
+      }
+    }
+    return stops[stops.length - 1][1];
+  };
+}
+function csched(stops) {
+  const cs = stops.map(([t, c]) => [t, new THREE.Color(c)]);
+  const o = new THREE.Color();
+  return (t) => {
+    if (t <= cs[0][0]) return o.copy(cs[0][1]);
+    for (let i = 1; i < cs.length; i++) {
+      if (t <= cs[i][0]) {
+        const f = (t - cs[i - 1][0]) / (cs[i][0] - cs[i - 1][0]);
+        return o.copy(cs[i - 1][1]).lerp(cs[i][1], f);
+      }
+    }
+    return o.copy(cs[cs.length - 1][1]);
+  };
+}
+
+// ============================================================================
+// timeline: shots + the verbatim caption, split only at phrase boundaries
+// ============================================================================
+const CAPTIONS = [
+  'When Mr. Bilbo Baggins of Bag End',
+  'announced that he would shortly be',
+  'celebrating his eleventy-first birthday',
+  'with a party of special',
+  'magnificence,',
+  'there was much talk and excitement in Hobbiton.',
+];
+const SHOTS = [
+  { id: 'bagend',   title: 'Bag End',            dur: 12, cap: 0, fov: 42, keys: [ { p: [3.4, 4.6, -15.0], l: [0, 2.2, -29] }, { p: [3.0, 4.2, -17.0], l: [0, 2.2, -29] } ] },
+  { id: 'announce', title: 'The Announcement',   dur: 10, cap: 1, fov: 40, keys: [ { p: [3.6, 2.9, -20.5], l: [0.2, 2.3, -29] }, { p: [3.2, 2.7, -21.5], l: [0.2, 2.3, -29] } ] },
+  { id: 'birthday', title: 'Eleventy-first',     dur: 9,  cap: 2, fov: 38, keys: [ { p: [2.2, 2.5, -24.8], l: [0, 2.0, -29.6] }, { p: [1.7, 2.4, -25.6], l: [0, 2.0, -29.6] } ] },
+  { id: 'lane',     title: 'Down the Lane',      dur: 11, cap: 3, fov: 46, keys: [ { p: [-5.0, 2.2, -13.5], l: [-2.0, 1.6, 1] }, { p: [-4.6, 2.0, -7.5], l: [-1.4, 1.6, 6] }, { p: [-4.2, 2.0, -1.5], l: [1.2, 1.6, 10] } ] },
+  { id: 'field',    title: 'The Party Field',    dur: 12, cap: 4, fov: 44, keys: [ { p: [-23, 6.8, 31], l: [-4, 2.4, 13] }, { p: [-19, 5.6, 28], l: [-2, 2.2, 13] } ] },
+  { id: 'dusk',     title: 'Lanternlight',       dur: 10, cap: -1, fov: 44, keys: [ { p: [1, 8.5, 37], l: [0, 2.5, 9] }, { p: [1, 13, 42], l: [0, 1.5, 3] } ] },
+  { id: 'talk',     title: 'Much Talk',          dur: 13, cap: 5, fov: 46, keys: [ { p: [-17, 2.4, -7.5], l: [2, 1.1, -13.5] }, { p: [-11, 2.4, -8.5], l: [4, 1.1, -13] } ] },
+  { id: 'crowd',    title: 'Excitement',         dur: 11, cap: 5, fov: 46, keys: [ { p: [11, 3.4, -1], l: [-4, 1.2, 14] }, { p: [9, 3.6, 1], l: [-3, 1.3, 15] } ] },
+  { id: 'fireworks', title: 'Fireworks',         dur: 13, cap: -1, fov: 44, keys: [ { p: [-1.5, 3.1, 25], l: [0, 22, -38] }, { p: [-1.0, 3.8, 25], l: [0, 26, -40] } ] },
+  { id: 'finale',   title: 'A Long-expected Party', dur: 12, cap: -1, fov: 44, keys: [ { p: [0, 13, 48], l: [0, 7, -16] }, { p: [0, 22, 68], l: [0, 5, -20] } ] },
+];
+let acc = 0;
+for (const s of SHOTS) { s.start = acc; acc += s.dur; }
+const DURATION = acc; // 113s
+
+function shotAt(t) {
+  const tt = clamp(t, 0, DURATION - 0.001);
+  for (let i = SHOTS.length - 1; i >= 0; i--) if (tt >= SHOTS[i].start) return { shot: SHOTS[i], idx: i, lt: (tt - SHOTS[i].start) / SHOTS[i].dur };
+  return { shot: SHOTS[0], idx: 0, lt: 0 };
+}
+function sampleShot(shot, lt) {
+  const k = shot.keys;
+  if (k.length === 1) return { p: k[0].p, l: k[0].l };
+  const f = clamp(lt, 0, 1) * (k.length - 1);
+  const i = Math.min(Math.floor(f), k.length - 2);
+  const u = sstep(f - i);
+  const a = k[i], b = k[i + 1];
+  return {
+    p: [lerp(a.p[0], b.p[0], u), lerp(a.p[1], b.p[1], u), lerp(a.p[2], b.p[2], u)],
+    l: [lerp(a.l[0], b.l[0], u), lerp(a.l[1], b.l[1], u), lerp(a.l[2], b.l[2], u)],
+  };
+}
+// dip-to-black between shots, plus opening and closing fades
+function fadeOf(t) {
+  let o = 0;
+  if (t < 1.4) o = Math.max(o, 1 - t / 1.4);
+  if (t > DURATION - 1.6) o = Math.max(o, (t - (DURATION - 1.6)) / 1.6);
+  for (let i = 1; i < SHOTS.length; i++) {
+    const d = Math.abs(t - SHOTS[i].start);
+    if (d < 0.7) o = Math.max(o, 1 - d / 0.7);
+  }
+  return o;
+}
+
+// day -> dusk -> night is one continuous sky (and sun arc), never a swap
+const DAY = 0, DUSK_A = 52, DUSK_B = 70, NIGHT = 92;
+const skyC  = csched([[DAY, 0x9fd0ea], [DUSK_A, 0xf2b46a], [DUSK_B, 0x3a3558], [NIGHT, 0x0b1126], [DURATION, 0x060a1c]]);
+const fogC  = csched([[DAY, 0xd8e6c9], [DUSK_A, 0xdfb183], [DUSK_B, 0x463f5f], [NIGHT, 0x0b1126], [DURATION, 0x060a1c]]);
+const sunC  = csched([[DAY, 0xfff4d8], [DUSK_A, 0xffc37a], [DUSK_B, 0x5a4a6a], [NIGHT, 0x141a2e], [DURATION, 0x0d1220]]);
+const sunI  = sched([[DAY, 2.6], [DUSK_A, 2.2], [DUSK_B, 0.35], [NIGHT, 0.03], [DURATION, 0.02]]);
+const hemiI = sched([[DAY, 0.9], [DUSK_A, 0.65], [DUSK_B, 0.25], [NIGHT, 0.16], [DURATION, 0.13]]);
+const moonI = sched([[DAY, 0], [DUSK_A, 0], [DUSK_B, 0.2], [NIGHT, 0.6], [DURATION, 0.62]]);
+const starO = sched([[DAY, 0], [DUSK_A, 0], [DUSK_B, 0.35], [NIGHT, 0.95], [DURATION, 1]]);
+const glow  = sched([[DAY, 0], [DUSK_A, 0.03], [DUSK_B, 0.7], [NIGHT, 1], [DURATION, 1]]);
+const sunAngle  = sched([[DAY, -0.30], [40, 0.75], [DUSK_A, 1.05], [DUSK_B, 1.75], [NIGHT, 2.4], [DURATION, 2.9]]);
+const moonAngle = sched([[DAY, -0.6], [DUSK_A, -0.5], [DUSK_B, 0.0], [NIGHT, 0.55], [DURATION, 0.8]]);
+
+// ============================================================================
+// renderer / scene / camera / lights
+// ============================================================================
+const canvas = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: RECORD });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+const scene = new THREE.Scene();
+scene.fog = new THREE.Fog(0xdfe8d0, 120, 400);
+const camera = new THREE.PerspectiveCamera(45, innerWidth / innerHeight, 0.1, 900);
+
+const sun = new THREE.DirectionalLight(0xfff2d6, 2.6);
+sun.castShadow = true;
+sun.shadow.mapSize.set(1024, 1024);
+sun.shadow.camera.left = -75; sun.shadow.camera.right = 75;
+sun.shadow.camera.top = 75; sun.shadow.camera.bottom = -75;
+sun.shadow.camera.far = 320;
+sun.shadow.bias = -0.0004;
+scene.add(sun); scene.add(sun.target);
+
+const hemi = new THREE.HemisphereLight(0xbfd8ff, 0x6f8f4f, 0.9);
+scene.add(hemi);
+const moon = new THREE.DirectionalLight(0x8fa8d8, 0);
+scene.add(moon);
+
+const skyColor = new THREE.Color(0x9fd0ea);
+scene.background = skyColor;
+
+// stars
+let stars;
+{
+  const N = 420, pos = new Float32Array(N * 3);
+  for (let i = 0; i < N; i++) {
+    const th = rr(0, TAU), ph = Math.acos(rr(0, 1));
+    const r = 330 + rr(0, 40);
+    pos[i * 3] = r * Math.sin(ph) * Math.cos(th);
+    pos[i * 3 + 1] = Math.abs(r * Math.cos(ph)) + 4;
+    pos[i * 3 + 2] = r * Math.sin(ph) * Math.sin(th);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  stars = new THREE.Points(g, new THREE.PointsMaterial({ color: 0xffffff, size: 1.2, sizeAttenuation: true, transparent: true, opacity: 0, fog: false }));
+  scene.add(stars);
+}
+
+// sun and moon discs ride the same continuous arcs as the light
+const sunDisc = new THREE.Mesh(new THREE.SphereGeometry(7, 16, 12), new THREE.MeshBasicMaterial({ color: 0xfff2c8, fog: false }));
+scene.add(sunDisc);
+const moonDisc = new THREE.Mesh(new THREE.SphereGeometry(5.5, 16, 12), new THREE.MeshBasicMaterial({ color: 0xd8e4f8, fog: false }));
+scene.add(moonDisc);
+
+// ============================================================================
+// ground: meadow with a real path from the green door to the party field,
+// plus a village lane crossing it
+// ============================================================================
+const PATH = [[0, -29], [0, -26], [-1, -23], [-2.2, -20], [-3.2, -16], [-3.6, -12], [-3.2, -8], [-1.6, -4], [0.6, 0], [2.2, 4], [2.8, 8], [3.0, 11]];
+function pathDist(x, z) {
+  let best = 1e9;
+  for (let i = 0; i < PATH.length - 1; i++) {
+    const [x0, z0] = PATH[i], [x1, z1] = PATH[i + 1];
+    const dx = x1 - x0, dz = z1 - z0;
+    const L2 = dx * dx + dz * dz || 1e-9;
+    const u = clamp(((x - x0) * dx + (z - z0) * dz) / L2, 0, 1);
+    best = Math.min(best, Math.hypot(x - (x0 + dx * u), z - (z0 + dz * u)));
+  }
+  return best;
+}
+// x position + heading yaw of the path at a given z
+function pathXY(z) {
+  for (let i = 0; i < PATH.length - 1; i++) {
+    const [x0, z0] = PATH[i], [x1, z1] = PATH[i + 1];
+    if (z >= Math.min(z0, z1) && z <= Math.max(z0, z1)) {
+      const f = (z1 === z0) ? 0 : (z - z0) / (z1 - z0);
+      return { x: lerp(x0, x1, f), yaw: Math.atan2(x1 - x0, z1 - z0) };
+    }
+  }
+  return { x: PATH[PATH.length - 1][0], yaw: 0 };
+}
+
+function makeGround() {
+  const W = 340, seg = 120;
+  const geo = new THREE.PlaneGeometry(W, W, seg, seg);
+  geo.rotateX(-Math.PI / 2);
+  const pos = geo.attributes.position;
+  const N = pos.count;
+  const col = new Float32Array(N * 3);
+  const gA = new THREE.Color(0x5e8f3c), gB = new THREE.Color(0x7fae4c), gC = new THREE.Color(0x93a44c);
+  const dirt = new THREE.Color(0xc7ae74), edge = new THREE.Color(0xb39a63);
+  const tmp = new THREE.Color();
+  for (let i = 0; i < N; i++) {
+    const x = pos.getX(i), z = pos.getZ(i);
+    let n = Math.sin(x * 0.05) * Math.cos(z * 0.055) + Math.sin((x + z) * 0.021) + 0.4 * Math.sin(x * 0.13 + 2) * Math.sin(z * 0.17);
+    tmp.copy(gA).lerp(gB, clamp(n * 0.5 + 0.5, 0, 1));
+    if (Math.abs(Math.sin(x * 0.13 + 2.0) * Math.sin(z * 0.17)) > 0.82) tmp.copy(gC);
+    const d = pathDist(x, z);
+    if (d < 1.6) { const f = clamp(d / 1.6, 0, 1); tmp.lerp(dirt, f * f); }
+    else if (d < 2.6) { const f = clamp((d - 1.6) / 1.0, 0, 1); tmp.lerp(edge, 1 - f); }
+    if (Math.abs(z - (-14)) < 1.1 && Math.abs(x) < 30 && d > 2.2) {
+      const f = clamp(Math.abs(z + 14) / 1.1, 0, 1); tmp.lerp(dirt, f * f);
+    }
+    col[i * 3] = tmp.r; col[i * 3 + 1] = tmp.g; col[i * 3 + 2] = tmp.b;
+  }
+  geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  const m = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1 }));
+  m.receiveShadow = true;
+  return m;
+}
+scene.add(makeGround());
+
+// rolling hills on the horizon so the village sits in a valley, not a void
+{
+  const hillMat = new THREE.MeshStandardMaterial({ color: 0x5d8a3e, roughness: 1 });
+  for (let i = 0; i < 9; i++) {
+    const a = (i / 9) * TAU + rr(-0.2, 0.2);
+    const r = 150 + rr(-8, 30);
+    const h = new THREE.Mesh(new THREE.SphereGeometry(rr(34, 60), 20, 12), hillMat);
+    h.position.set(Math.cos(a) * r, -6 + rr(-2, 4), Math.sin(a) * r);
+    h.scale.y = 0.55;
+    scene.add(h);
+  }
+}
+
+// ============================================================================
+// Bag End — the Hill, with the round green door
+// ============================================================================
+const HILL = new THREE.Vector3(0, -3.5, -44);
+const DOOR_N = new THREE.Vector3(0, 0.35, 0.936).normalize();
+const DOOR_P = new THREE.Vector3(0, 1.95, -29.9);
+const hillRadii = [20, 9.92, 16.8]; // ellipsoid radii x, y, z
+function hillPoint(x, y, z, inset = 0.97) {
+  const u = new THREE.Vector3(x - HILL.x, y - HILL.y, z - HILL.z).normalize();
+  const r = 1 / Math.sqrt((u.x / hillRadii[0]) ** 2 + (u.y / hillRadii[1]) ** 2 + (u.z / hillRadii[2]) ** 2);
+  return HILL.clone().addScaledVector(u, r * inset);
+}
+const windowMats = [];      // every lit window in the village
+const lanternMats = [];     // party lanterns
+const stringMats = [];      // string lights
+const candleFlames = [];    // cake candles
+const smokePuffs = [];      // chimney smoke
+const hobbits = [];         // all hobbits
+const bilboRef = {};
+
+function buildBagEnd() {
+  const g = new THREE.Group();
+  const hill = new THREE.Mesh(new THREE.SphereGeometry(16, 48, 32), new THREE.MeshStandardMaterial({ color: 0x64943e, roughness: 1 }));
+  hill.scale.set(1.25, 0.62, 1.05);
+  hill.position.copy(HILL);
+  hill.castShadow = true; hill.receiveShadow = true;
+  g.add(hill);
+
+  // door in its stone frame
+  const dg = new THREE.Group();
+  const arch = new THREE.Mesh(new THREE.CylinderGeometry(1.75, 1.75, 0.7, 28), new THREE.MeshStandardMaterial({ color: 0x8a7055, roughness: 0.9 }));
+  dg.add(arch);
+  const door = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.5, 0.34, 28), new THREE.MeshStandardMaterial({ color: 0x2f7d32, roughness: 0.7 }));
+  door.position.y = 0.16;
+  dg.add(door);
+  const knob = new THREE.Mesh(new THREE.SphereGeometry(0.15, 12, 10), new THREE.MeshStandardMaterial({ color: 0xd8b64a, metalness: 0.85, roughness: 0.3 }));
+  knob.position.set(-0.85, 0.08, 0.42);
+  dg.add(knob);
+  dg.position.copy(DOOR_P);
+  dg.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), DOOR_N);
+  g.add(dg);
+
+  // two round windows, one up and one aside — windows, not a face
+  const winMat = new THREE.MeshStandardMaterial({ color: 0x2a2a3a, roughness: 0.4, emissive: 0xffd27a, emissiveIntensity: 0 });
+  windowMats.push(winMat);
+  for (const [x, y, z] of [[2.55, 3.5, -28.6], [-2.85, 2.9, -28.2]]) {
+    const p = hillPoint(x, y, z, 1.0);
+    const w = new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.62, 0.2, 22), winMat);
+    w.position.copy(p);
+    w.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(p.x - HILL.x, p.y - HILL.y, p.z - HILL.z).normalize());
+    g.add(w);
+    const fr = new THREE.Mesh(new THREE.TorusGeometry(0.62, 0.08, 8, 22), new THREE.MeshStandardMaterial({ color: 0x4a3b2a }));
+    fr.position.copy(p);
+    fr.quaternion.copy(w.quaternion);
+    g.add(fr);
+  }
+
+  // chimney + smoke puffs
+  const chP = hillPoint(-4.5, 5.0, -46.5, 1.0);
+  const chN = new THREE.Vector3(chP.x - HILL.x, chP.y - HILL.y, chP.z - HILL.z).normalize();
+  const chimney = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.75, 3.2, 12), new THREE.MeshStandardMaterial({ color: 0x8a6f52, roughness: 1 }));
+  chimney.position.copy(chP).addScaledVector(chN, 1.2);
+  chimney.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), chN);
+  g.add(chimney);
+  const smokeBase = chP.clone().addScaledVector(chN, 3.0);
+  for (let i = 0; i < 16; i++) {
+    const s = new THREE.Mesh(new THREE.SphereGeometry(rr(0.5, 1.0), 8, 8), new THREE.MeshBasicMaterial({ color: 0xd8d8d8, transparent: true, opacity: 0.3 }));
+    s.userData = { base: smokeBase, off: i / 16, speed: rr(0.35, 0.6), drift: rr(-0.6, 0.6) };
+    scene.add(s);
+    smokePuffs.push(s);
+  }
+
+  // stone landing and two steps under the door, hugging the slope
+  const slab = new THREE.Mesh(new THREE.CylinderGeometry(2.1, 2.1, 0.18, 24), new THREE.MeshStandardMaterial({ color: 0x9a9488, roughness: 1 }));
+  slab.position.copy(DOOR_P).addScaledVector(DOOR_N, -1.35);
+  slab.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), DOOR_N);
+  slab.receiveShadow = true;
+  g.add(slab);
+  for (let i = 0; i < 2; i++) {
+    const st = new THREE.Mesh(new THREE.CylinderGeometry(1.8 - i * 0.25, 1.8 - i * 0.25, 0.14, 24), new THREE.MeshStandardMaterial({ color: 0xa29c8e, roughness: 1 }));
+    st.position.copy(DOOR_P).addScaledVector(DOOR_N, -2.15 - i * 0.85);
+    st.quaternion.copy(slab.quaternion);
+    st.receiveShadow = true;
+    g.add(st);
+  }
+
+  // flower barrels and a bench beside the door
+  for (const sx of [-2.4, 2.6]) {
+    const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.38, 0.6, 10), new THREE.MeshStandardMaterial({ color: 0x7a5a3a, roughness: 1 }));
+    const bp = DOOR_P.clone().addScaledVector(DOOR_N, -2.3); bp.x += sx; bp.y = 0.35;
+    barrel.position.copy(bp);
+    g.add(barrel);
+    const bush = new THREE.Mesh(new THREE.SphereGeometry(0.45, 10, 8), new THREE.MeshStandardMaterial({ color: pick([0x6a9a3f, 0x8a5a3a, 0xc9a45a]), roughness: 1 }));
+    bush.position.copy(bp); bush.position.y += 0.55;
+    g.add(bush);
+  }
+
+  // low fence curving down from the door along the path
+  const postMat = new THREE.MeshStandardMaterial({ color: 0x6b4f30 });
+  for (let i = 0; i < 7; i++) {
+    const zz = -26 - i * 1.7;
+    const pxy = pathXY(zz);
+    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.11, 0.9, 6), postMat);
+    post.position.set(pxy.x + 2.4, 0.45, zz);
+    g.add(post);
+    const rail = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 1.9, 6), postMat);
+    rail.rotation.z = Math.PI / 2;
+    rail.position.set(pxy.x + 2.4, 0.72, zz);
+    g.add(rail);
+  }
+  return g;
+}
+scene.add(buildBagEnd());
+
+// ============================================================================
+// Hobbiton village: smials, cottages, gardens, fences, the mill and the pond
+// ============================================================================
+const woodMat = new THREE.MeshStandardMaterial({ color: 0x8a6a45, roughness: 0.8 });
+
+function makeSmial(x, z, rotY, doorCol) {
+  const g = new THREE.Group();
+  const mound = new THREE.Mesh(new THREE.SphereGeometry(3.0, 20, 14), new THREE.MeshStandardMaterial({ color: pick([0x64943e, 0x5f8f3c, 0x6d9a42]), roughness: 1 }));
+  mound.scale.set(1.15, 0.55, 1.0);
+  mound.position.y = 0.4;
+  mound.castShadow = true; mound.receiveShadow = true;
+  g.add(mound);
+  const MC = new THREE.Vector3(0, 0.4, 0);
+  const MR = [3.45, 1.65, 3.0];
+  const moundPoint = (px, py, pz, inset) => {
+    const u = new THREE.Vector3(px, py - MC.y, pz).normalize();
+    const r = 1 / Math.sqrt((u.x / MR[0]) ** 2 + (u.y / MR[1]) ** 2 + (u.z / MR[2]) ** 2);
+    return { p: MC.clone().addScaledVector(u, r * inset), n: u.clone() };
+  };
+  // round door on the mound's face
+  const dp = moundPoint(0, 1.15, 2.6, 1.02);
+  const dg = new THREE.Group();
+  const door = new THREE.Mesh(new THREE.CylinderGeometry(0.95, 0.95, 0.26, 20), new THREE.MeshStandardMaterial({ color: doorCol, roughness: 0.7 }));
+  dg.add(door);
+  const knob = new THREE.Mesh(new THREE.SphereGeometry(0.1, 8, 8), new THREE.MeshStandardMaterial({ color: 0xd8b64a, metalness: 0.8, roughness: 0.3 }));
+  knob.position.set(-0.55, 0, 0.35);
+  dg.add(knob);
+  dg.position.copy(dp.p);
+  dg.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dp.n);
+  g.add(dg);
+  // one round window, offset up and to the side
+  const wm = new THREE.MeshStandardMaterial({ color: 0x2a2a3a, emissive: 0xffc97a, emissiveIntensity: 0, roughness: 0.5 });
+  windowMats.push(wm);
+  const wp = moundPoint(1.5, 1.8, 1.9, 1.0);
+  const w = new THREE.Mesh(new THREE.CylinderGeometry(0.48, 0.48, 0.16, 16), wm);
+  w.position.copy(wp.p);
+  w.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), wp.n);
+  g.add(w);
+  const wf = new THREE.Mesh(new THREE.TorusGeometry(0.48, 0.07, 8, 16), new THREE.MeshStandardMaterial({ color: 0x4a3b2a }));
+  wf.position.copy(wp.p);
+  wf.quaternion.copy(w.quaternion);
+  g.add(wf);
+  // tiny chimney
+  const cp = moundPoint(-1.7, 2.4, -0.8, 1.0);
+  const ch = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.26, 1.2, 8), new THREE.MeshStandardMaterial({ color: 0x8a6f52 }));
+  ch.position.copy(cp.p).addScaledVector(cp.n, 0.4);
+  ch.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), cp.n);
+  g.add(ch);
+  g.position.set(x, 0, z);
+  g.rotation.y = rotY;
+  return g;
+}
+
+function makeCottage(x, z, rotY) {
+  const g = new THREE.Group();
+  const wall = new THREE.Mesh(new THREE.CylinderGeometry(2.5, 2.8, 2.5, 12), new THREE.MeshStandardMaterial({ color: pick([0xe8ddc4, 0xe2d5b8, 0xecdfc8]), roughness: 1 }));
+  wall.position.y = 1.25;
+  wall.castShadow = true; wall.receiveShadow = true;
+  g.add(wall);
+  const roof = new THREE.Mesh(new THREE.ConeGeometry(3.4, 2.4, 12), new THREE.MeshStandardMaterial({ color: pick([0x9a6f3f, 0x8a6238, 0xa67a45]), roughness: 1 }));
+  roof.position.y = 3.7;
+  roof.castShadow = true;
+  g.add(roof);
+  // two round windows at different heights (windows, not a face)
+  for (const [wx, wy, wz] of [[-1.1, 1.5, 2.58], [1.25, 1.95, 2.52]]) {
+    const wm = new THREE.MeshStandardMaterial({ color: 0x33303a, emissive: 0xffc97a, emissiveIntensity: 0, roughness: 0.5 });
+    windowMats.push(wm);
+    const w = new THREE.Mesh(new THREE.CylinderGeometry(0.52, 0.52, 0.14, 16), wm);
+    w.rotation.x = Math.PI / 2;
+    w.position.set(wx, wy, wz);
+    g.add(w);
+    const wf = new THREE.Mesh(new THREE.TorusGeometry(0.52, 0.07, 8, 18), new THREE.MeshStandardMaterial({ color: 0x4a3b2a }));
+    wf.rotation.x = Math.PI / 2;
+    wf.position.copy(w.position);
+    g.add(wf);
+  }
+  const d = new THREE.Mesh(new THREE.BoxGeometry(0.95, 1.6, 0.16), new THREE.MeshStandardMaterial({ color: pick([0x5b4030, 0x6a4c38]), roughness: 0.9 }));
+  d.position.set(0.7, 0.8, 2.72);
+  g.add(d);
+  const ch = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.38, 1.7, 8), new THREE.MeshStandardMaterial({ color: 0x8a6f52 }));
+  ch.position.set(-1.5, 4.5, 0.6);
+  g.add(ch);
+  // garden patch
+  for (let i = 0; i < 6; i++) {
+    const fl = new THREE.Mesh(new THREE.SphereGeometry(0.16, 8, 6), new THREE.MeshStandardMaterial({ color: pick([0xe06a6a, 0xe8c96a, 0xca6ac8, 0x6ac8e8, 0xffffff]) }));
+    fl.position.set(-2.6 + rr(-0.3, 0.3), 0.16, 1.4 + rr(-0.4, 0.4));
+    fl.scale.y = 0.7;
+    g.add(fl);
+  }
+  g.position.set(x, 0, z);
+  g.rotation.y = rotY;
+  return g;
+}
+
+function makeMill(x, z) {
+  const g = new THREE.Group();
+  const body = new THREE.Mesh(new THREE.BoxGeometry(4.5, 4.6, 4.2), new THREE.MeshStandardMaterial({ color: 0xcbb58e, roughness: 1 }));
+  body.position.y = 2.3;
+  body.castShadow = true; body.receiveShadow = true;
+  g.add(body);
+  const roof = new THREE.Mesh(new THREE.ConeGeometry(3.9, 2.2, 4), new THREE.MeshStandardMaterial({ color: 0x7a5c38, roughness: 1 }));
+  roof.position.y = 5.7;
+  roof.rotation.y = Math.PI / 4;
+  roof.castShadow = true;
+  g.add(roof);
+  const wm = new THREE.MeshStandardMaterial({ color: 0x33303a, emissive: 0xffc97a, emissiveIntensity: 0 });
+  windowMats.push(wm);
+  const w = new THREE.Mesh(new THREE.CircleGeometry(0.6, 16), wm);
+  w.position.set(0, 2.6, 2.12);
+  g.add(w);
+  // the water wheel
+  const wheel = new THREE.Group();
+  const rim = new THREE.Mesh(new THREE.TorusGeometry(1.7, 0.16, 8, 22), new THREE.MeshStandardMaterial({ color: 0x5a4030, roughness: 0.8 }));
+  wheel.add(rim);
+  for (let i = 0; i < 8; i++) {
+    const a = (i / 8) * TAU;
+    const spoke = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 3.3, 6), new THREE.MeshStandardMaterial({ color: 0x5a4030 }));
+    spoke.rotation.z = Math.PI / 2;
+    spoke.position.set(Math.cos(a) * 1.65, Math.sin(a) * 1.65, 0);
+    wheel.add(spoke);
+  }
+  wheel.position.set(2.45, 2.05, 0);
+  g.add(wheel);
+  g.position.set(x, 0, z);
+  return { g, wheel };
+}
+const millRef = makeMill(27, -9);
+scene.add(millRef.g);
+
+// pond beside the mill
+{
+  const pond = new THREE.Mesh(new THREE.CircleGeometry(5.5, 28), new THREE.MeshStandardMaterial({ color: 0x3a6a8a, roughness: 0.25, metalness: 0.1 }));
+  pond.rotation.x = -Math.PI / 2;
+  pond.position.set(34, 0.06, 0);
+  pond.receiveShadow = true;
+  scene.add(pond);
+  const bank = new THREE.Mesh(new THREE.CylinderGeometry(5.6, 5.9, 0.4, 28), new THREE.MeshStandardMaterial({ color: 0x7d6a4a, roughness: 1 }));
+  bank.position.set(34, 0.12, 0);
+  scene.add(bank);
+}
+
+// village layout
+const smials = [
+  [-8, -27, 0.5, 0x2f7d32], [7, -29, -0.4, 0x8a3a3a], [-13, -24, 1.2, 0x3a5a8a], [12, -25, -0.9, 0xc9a45a], [-4, -31.5, 0.15, 0x6a4a8a],
+];
+for (const [x, z, ry, dc] of smials) scene.add(makeSmial(x, z, ry, dc));
+const cottages = [
+  [-15, -17, 0.3], [-9, -20, 2.9], [-22, -11, 1.4], [-12, -8, 5.0], [6, -18, 3.3], [17, -12, 0.7], [21, -20, 2.1], [10, -7, 5.6],
+];
+for (const [x, z, ry] of cottages) scene.add(makeCottage(x, z, ry));
+
+// scattered trees
+{
+  const trunkMat = new THREE.MeshStandardMaterial({ color: 0x6b4a2f, roughness: 1 });
+  const leafMat = new THREE.MeshStandardMaterial({ color: 0x4f8f3a, roughness: 1 });
+  for (let i = 0; i < 12; i++) {
+    const x = rr(-34, 36), z = rr(-34, 34);
+    if (Math.hypot(x, z + 44) < 20 || pathDist(x, z) < 4 || (x > 20 && z > -16)) continue;
+    const g = new THREE.Group();
+    const t = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.4, 2.2, 8), trunkMat);
+    t.position.y = 1.1;
+    t.castShadow = true;
+    g.add(t);
+    for (let j = 0; j < 3; j++) {
+      const blob = new THREE.Mesh(new THREE.SphereGeometry(rr(0.9, 1.5), 10, 8), leafMat);
+      blob.position.set(rr(-0.6, 0.6), 2.2 + j * 0.75, rr(-0.6, 0.6));
+      blob.castShadow = true;
+      g.add(blob);
+    }
+    g.position.set(x, 0, z);
+    scene.add(g);
+  }
+}
+
+// ============================================================================
+// the party field: marquees, tables, the cake, the great Party Tree, lanterns
+// ============================================================================
+function makeTent(x, z, ca, cb) {
+  const g = new THREE.Group();
+  const cone = new THREE.ConeGeometry(4.6, 3.0, 12);
+  const pos = cone.attributes.position;
+  const col = new Float32Array(pos.count * 3);
+  const A = new THREE.Color(ca), B = new THREE.Color(cb);
+  for (let i = 0; i < pos.count; i++) {
+    const band = Math.floor((pos.getY(i) / 3.0) * 7) % 2;
+    const c = band ? A : B;
+    col[i * 3] = c.r; col[i * 3 + 1] = c.g; col[i * 3 + 2] = c.b;
+  }
+  cone.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  const roof = new THREE.Mesh(cone, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1, side: THREE.DoubleSide }));
+  roof.position.y = 3.6;
+  g.add(roof);
+  const poleMat = new THREE.MeshStandardMaterial({ color: 0x6b4f30 });
+  for (let i = 0; i < 4; i++) {
+    const a = (i * TAU) / 4 + 0.35;
+    const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 3.5, 6), poleMat);
+    pole.position.set(Math.cos(a) * 3.6, 1.75, Math.sin(a) * 3.6);
+    g.add(pole);
+  }
+  g.position.set(x, 0, z);
+  return g;
+}
+function makeTable(x, z, rotY, len) {
+  const g = new THREE.Group();
+  const top = new THREE.Mesh(new THREE.BoxGeometry(len, 0.22, 1.5), woodMat);
+  top.position.y = 1.1;
+  top.castShadow = true; top.receiveShadow = true;
+  g.add(top);
+  for (const lx of [-len / 2 + 0.4, len / 2 - 0.4]) {
+    const leg = new THREE.Mesh(new THREE.BoxGeometry(0.24, 1.0, 1.2), new THREE.MeshStandardMaterial({ color: 0x6b4f30 }));
+    leg.position.set(lx, 0.5, 0);
+    g.add(leg);
+  }
+  for (let i = 0; i < Math.floor(len / 1.4); i++) {
+    const px = -len / 2 + 0.9 + i * 1.4;
+    const plate = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.36, 0.07, 12), new THREE.MeshStandardMaterial({ color: 0xf4efdf, roughness: 0.4 }));
+    plate.position.set(px, 1.25, 0.2);
+    g.add(plate);
+    const plate2 = plate.clone();
+    plate2.position.set(px, 1.25, -0.25);
+    g.add(plate2);
+    const cup = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.1, 0.24, 10), new THREE.MeshStandardMaterial({ color: 0xc9a45a, roughness: 0.5 }));
+    cup.position.set(px + 0.5, 1.32, 0);
+    g.add(cup);
+  }
+  g.position.set(x, 0, z);
+  g.rotation.y = rotY;
+  return g;
+}
+scene.add(makeTent(-8, 22, 0xd8a05a, 0xf4f0e6));
+scene.add(makeTent(4, 26, 0xb96a5a, 0xf4e8d8));
+scene.add(makeTable(-2, 16, 0.2, 9));
+scene.add(makeTable(8, 14, -0.3, 7));
+
+// the birthday cake with candles
+{
+  const cake = new THREE.Group();
+  const t1 = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.5, 0.7, 24), new THREE.MeshStandardMaterial({ color: 0xf2e8d0, roughness: 0.5 }));
+  t1.position.y = 0.35; cake.add(t1);
+  const t2 = new THREE.Mesh(new THREE.CylinderGeometry(1.0, 1.0, 0.7, 24), new THREE.MeshStandardMaterial({ color: 0xe8d9b4, roughness: 0.5 }));
+  t2.position.y = 1.05; cake.add(t2);
+  const icing = new THREE.Mesh(new THREE.CylinderGeometry(1.05, 1.05, 0.2, 24), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.4 }));
+  icing.position.y = 1.5; cake.add(icing);
+  for (let i = 0; i < 24; i++) {
+    const a = (i / 24) * TAU;
+    const candle = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.6, 8), new THREE.MeshStandardMaterial({ color: pick([0xe06a6a, 0x6ac8e8, 0xe8c96a, 0xca6ac8]) }));
+    candle.position.set(Math.cos(a) * 0.8, 1.85, Math.sin(a) * 0.8);
+    cake.add(candle);
+    const flame = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 8), new THREE.MeshBasicMaterial({ color: 0xffc96a }));
+    flame.position.set(Math.cos(a) * 0.8, 2.22, Math.sin(a) * 0.8);
+    cake.add(flame);
+    candleFlames.push(flame);
+  }
+  cake.position.set(0, 0, 20);
+  cake.castShadow = true;
+  scene.add(cake);
+}
+
+// the great Party Tree
+{
+  const tree = new THREE.Group();
+  const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 1.3, 6, 12), new THREE.MeshStandardMaterial({ color: 0x6b4a2f, roughness: 1 }));
+  trunk.position.y = 3;
+  trunk.castShadow = true;
+  tree.add(trunk);
+  const leafMat = new THREE.MeshStandardMaterial({ color: 0x4f8f3a, roughness: 1 });
+  for (const [y, r, sx, sz] of [[6.5, 4.4, 1, 1], [8.3, 3.3, 0.92, 0.92], [9.7, 2.1, 0.82, 0.82]]) {
+    const blob = new THREE.Mesh(new THREE.SphereGeometry(r, 20, 14), leafMat);
+    blob.position.y = y;
+    blob.scale.set(sx, 0.85, sz);
+    blob.castShadow = true;
+    tree.add(blob);
+  }
+  tree.position.set(-14, 0, 12);
+  scene.add(tree);
+}
+
+// lantern poles + string lights + bunting
+function makeLantern(x, z) {
+  const g = new THREE.Group();
+  const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 3.4, 6), new THREE.MeshStandardMaterial({ color: 0x3a3020 }));
+  pole.position.y = 1.7;
+  g.add(pole);
+  const mat = new THREE.MeshStandardMaterial({ color: 0xffc97a, emissive: 0xffc97a, emissiveIntensity: 0, roughness: 0.5 });
+  const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.32, 14, 12), mat);
+  bulb.position.y = 3.4;
+  g.add(bulb);
+  lanternMats.push(mat);
+  g.position.set(x, 0, z);
+  return g;
+}
+for (const [x, z] of [[-4, 10], [4, 10], [-10, 20], [8, 24], [-20, 16], [14, 16]]) scene.add(makeLantern(x, z));
+// string lights in a catenary from the Party Tree to the marquees
+for (let i = 0; i < 16; i++) {
+  const t = i / 15;
+  const x = lerp(-14, 4, t), z = lerp(12, 24, t);
+  const y = 8.2 - Math.sin(t * Math.PI) * 2.4;
+  const mat = new THREE.MeshStandardMaterial({ color: 0xffd89a, emissive: 0xffd89a, emissiveIntensity: 0 });
+  const b = new THREE.Mesh(new THREE.SphereGeometry(0.15, 10, 10), mat);
+  b.position.set(x, y, z);
+  scene.add(b);
+  stringMats.push(mat);
+}
+// bunting flags between the two field lanterns
+for (let i = 0; i < 9; i++) {
+  const t = i / 8;
+  const x = lerp(-4, 4, t), y = 3.5 - Math.sin(t * Math.PI) * 0.5;
+  const flag = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.34, 0.03), new THREE.MeshStandardMaterial({ color: i % 2 ? 0xe06a6a : 0x6ac8e8, roughness: 0.9 }));
+  flag.position.set(x, y, 10);
+  flag.rotation.z = (t - 0.5) * 0.5;
+  scene.add(flag);
+}
+
+// ============================================================================
+// hobbits — built from primitives, animated entirely from film time
+// ============================================================================
+function makeHobbit(opts = {}) {
+  const g = new THREE.Group();
+  const skin = opts.skin || pick([0xf0c8a0, 0xe0b088, 0xd8a878, 0xefd0ac]);
+  const shirt = opts.shirt || pick([0x6a8f4a, 0x8a5a3a, 0xb0a050, 0x7a6a8a, 0x5a8a8a, 0xa07050, 0x908050]);
+  const pants = pick([0x5a4a3a, 0x4a4038, 0x6a5a48]);
+  const hat = opts.hat === false ? null : pick([null, null, 0x6a4a30, 0x4a6a30, 0x8a5a3a]);
+  const hair = opts.hair || pick([0x4a3020, 0x5a3a20, 0x8a6a40, 0x3a2a1a]);
+  const body = new THREE.Mesh(new THREE.SphereGeometry(0.5, 14, 12), new THREE.MeshStandardMaterial({ color: shirt, roughness: 0.9 }));
+  body.position.y = 0.62;
+  body.scale.set(1.05, 1.1, 0.9);
+  body.castShadow = true;
+  g.add(body);
+  const legMat = new THREE.MeshStandardMaterial({ color: pants, roughness: 1 });
+  const legs = [];
+  for (const s of [-1, 1]) {
+    const pivot = new THREE.Group();
+    pivot.position.set(s * 0.17, 0.52, 0);
+    const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.15, 0.5, 8), legMat);
+    leg.position.y = -0.25;
+    pivot.add(leg);
+    g.add(pivot);
+    legs.push(pivot);
+  }
+  const head = new THREE.Group();
+  head.position.y = 1.12;
+  const skull = new THREE.Mesh(new THREE.SphereGeometry(0.3, 16, 14), new THREE.MeshStandardMaterial({ color: skin, roughness: 0.8 }));
+  head.add(skull);
+  const hairCap = new THREE.Mesh(new THREE.SphereGeometry(0.31, 16, 10, 0, TAU, 0, Math.PI * 0.55), new THREE.MeshStandardMaterial({ color: hair, roughness: 1 }));
+  hairCap.position.y = 0.05;
+  head.add(hairCap);
+  if (hat) {
+    const hb = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.4, 0.36, 14), new THREE.MeshStandardMaterial({ color: hat, roughness: 1 }));
+    hb.position.y = 0.33;
+    head.add(hb);
+    const brim = new THREE.Mesh(new THREE.CylinderGeometry(0.48, 0.48, 0.05, 14), new THREE.MeshStandardMaterial({ color: hat, roughness: 1 }));
+    brim.position.y = 0.16;
+    head.add(brim);
+  }
+  g.add(head);
+  const arms = [];
+  for (const s of [-1, 1]) {
+    const pivot = new THREE.Group();
+    pivot.position.set(s * 0.42, 0.78, 0);
+    pivot.rotation.z = s * 0.15;
+    const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.1, 0.55, 8), new THREE.MeshStandardMaterial({ color: shirt, roughness: 0.9 }));
+    arm.position.y = -0.26;
+    pivot.add(arm);
+    g.add(pivot);
+    arms.push(pivot);
+  }
+  g.scale.setScalar(rr(0.88, 1.05));
+  g.userData = { legs, arms, head, phase: rr(0, TAU) };
+  return g;
+}
+
+function placeHobbit(x, z, role, yaw) {
+  const h = makeHobbit();
+  h.position.set(x, 0, z);
+  h.rotation.y = yaw;
+  h.userData.role = role;
+  scene.add(h);
+  hobbits.push(h);
+  return h;
+}
+
+// Bilbo, waving from the green door
+{
+  const h = makeHobbit({ shirt: 0x9a3b2e, hat: false, hair: 0x9c9c9c });
+  h.position.set(0.9, 1.32, -31.1);
+  h.rotation.y = 0.3;
+  h.userData.role = 'bilbo';
+  scene.add(h);
+  hobbits.push(h);
+  bilboRef.h = h;
+}
+// strollers on the lane from the Hill to the field (walk, then walk back)
+for (let i = 0; i < 5; i++) {
+  const h = placeHobbit(0, 0, 'stroll', 0);
+  h.userData = Object.assign(h.userData, {
+    role: 'stroll', z0: rr(-28, 8), speed: rr(0.5, 0.8), side: i % 2 ? 1.15 : -1.15, range: [-28, 9],
+  });
+}
+// one stroller along the village lane (east-west)
+{
+  const h = placeHobbit(-24, -13.0, 'lanewalk', Math.PI / 2);
+  h.userData.role = 'lanewalk';
+  h.userData.x0 = -24; h.userData.speed = 0.75; h.userData.range = [-25, 25];
+}
+// children racing around the party field
+for (let i = 0; i < 5; i++) {
+  const h = placeHobbit(0, 16, 'child', 0);
+  h.userData.role = 'child';
+  h.userData.cr = rr(5, 11); h.userData.cw = rr(0.5, 0.85); h.userData.cp = rr(0, TAU);
+  h.scale.setScalar(0.72);
+}
+// gossip clusters — people facing each other
+{
+  const groups = [[5, -10, 3], [-6, -11, 3], [14, -8, 2]];
+  for (const [cx, cz, n] of groups) {
+    for (let j = 0; j < n; j++) {
+      const a = (j / n) * TAU + rr(-0.3, 0.3);
+      const x = cx + Math.cos(a) * 1.2, z = cz + Math.sin(a) * 1.2;
+      const h = placeHobbit(x, z, 'gossip', Math.atan2(cx - x, cz - z));
+      h.userData.role = 'gossip';
+    }
+  }
+}
+// two hobbits tending the tables
+for (const [x, z, yaw] of [[-2.5, 14.2, 0.6], [9.5, 13.2, -0.5]]) {
+  const h = placeHobbit(x, z, 'worker', yaw);
+  h.userData.role = 'worker';
+}
+// scattered watchers
+for (let i = 0; i < 10; i++) {
+  const x = rr(-24, 26), z = rr(-22, 26);
+  if (pathDist(x, z) < 3) continue;
+  placeHobbit(x, z, 'watcher', rr(0, TAU));
+}
+
+// ============================================================================
+// fireworks — launches are part of the timeline, so picture and sound agree
+// ============================================================================
+const PALETTES = [
+  [0xffc96a, 0xff9a5a], [0x8ac8ff, 0x5a8aff], [0xca8aff, 0xff6ac8], [0x8affaa, 0xc8ff5a], [0xffd8a0, 0xff6a6a],
+];
+const fireworks = [];
+{
+  const P = 96; // 6 trail + 90 burst particles
+  for (const shotId of ['fireworks', 'finale']) {
+    const s = SHOTS.find((x) => x.id === shotId);
+    const n = 4;
+    for (let i = 0; i < n; i++) {
+      const t0 = s.start + 0.8 + (i * (s.dur - 1.8)) / Math.max(1, n - 1) + rr(-0.35, 0.35);
+      const pal = pick(PALETTES);
+      const dirs = new Float32Array(90 * 3);
+      const spd = new Float32Array(90);
+      for (let j = 0; j < 90; j++) {
+        const th = rr(0, TAU), ph = Math.acos(rr(-1, 1));
+        dirs[j * 3] = Math.sin(ph) * Math.cos(th);
+        dirs[j * 3 + 1] = Math.cos(ph);
+        dirs[j * 3 + 2] = Math.sin(ph) * Math.sin(th);
+        spd[j] = rr(4, 12);
+      }
+      const geo = new THREE.BufferGeometry();
+      const pos = new Float32Array(P * 3);
+      const col = new Float32Array(P * 3);
+      const c0 = new THREE.Color(pal[0]), c1 = new THREE.Color(pal[1]);
+      const tmp = new THREE.Color();
+      for (let j = 0; j < 6; j++) { col[j * 3] = 1; col[j * 3 + 1] = 0.72; col[j * 3 + 2] = 0.4; }
+      for (let j = 6; j < P; j++) {
+        tmp.copy(c0).lerp(c1, RNG());
+        col[j * 3] = tmp.r; col[j * 3 + 1] = tmp.g; col[j * 3 + 2] = tmp.b;
+      }
+      geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+      geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+      const mat = new THREE.PointsMaterial({ size: 0.55, vertexColors: true, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false });
+      const pts = new THREE.Points(geo, mat);
+      pts.visible = false;
+      pts.frustumCulled = false;
+      scene.add(pts);
+      fireworks.push({
+        t0, x: rr(-16, 16), y: rr(30, 40), z: rr(-52, -34),
+        vx: rr(-0.5, 0.5), vy: rr(11.5, 13.5), vz: rr(-0.5, 0.5),
+        dirs, spd, life: rr(2.2, 3.4), pts, geo, mat,
+      });
+    }
+  }
+  fireworks.sort((a, b) => a.t0 - b.t0);
+}
+
+// ============================================================================
+// audio — every sound is synthesised in code and driven by film time
+// ============================================================================
+const AUDIO_EVENTS = [];
+{
+  // birds through the day, crickets once evening falls
+  let t = 1.2;
+  while (t < DURATION) {
+    if (t < DUSK_A) { AUDIO_EVENTS.push({ t, type: 'bird', f: rr(2100, 3800) }); t += rr(1.6, 5.2); }
+    else { AUDIO_EVENTS.push({ t, type: 'cricket', f: rr(3900, 4400) }); t += rr(0.8, 2.6); }
+  }
+  // rockets and their booms at exact film times
+  for (const fw of fireworks) {
+    AUDIO_EVENTS.push({ t: fw.t0, type: 'rocket' });
+    AUDIO_EVENTS.push({ t: fw.t0 + 1.15, type: 'boom', size: fw.life / 3.4 });
+  }
+  AUDIO_EVENTS.sort((a, b) => a.t - b.t);
+}
+
+function buildEvent(ctx, master, ev, at) {
+  const nodes = [];
+  const out = master;
+  if (ev.type === 'bird') {
+    const n = 2 + (RNG() < 0.5 ? 1 : 0);
+    for (let i = 0; i < n; i++) {
+      const t0 = at + i * rr(0.12, 0.3);
+      const o = ctx.createOscillator();
+      o.type = 'sine';
+      const f = ev.f * (1 + i * 0.22);
+      o.frequency.setValueAtTime(f, t0);
+      o.frequency.exponentialRampToValueAtTime(f * 1.45, t0 + 0.05);
+      o.frequency.exponentialRampToValueAtTime(f * 0.82, t0 + 0.13);
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0, t0);
+      g.gain.linearRampToValueAtTime(0.035, t0 + 0.015);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.15);
+      o.connect(g); g.connect(out);
+      o.start(t0); o.stop(t0 + 0.18);
+      nodes.push(o, g);
+    }
+  } else if (ev.type === 'cricket') {
+    for (let i = 0; i < 4; i++) {
+      const t0 = at + i * 0.055;
+      const o = ctx.createOscillator();
+      o.type = 'sine';
+      o.frequency.setValueAtTime(ev.f, t0);
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0, t0);
+      g.gain.linearRampToValueAtTime(0.016, t0 + 0.006);
+      g.gain.linearRampToValueAtTime(0.0001, t0 + 0.03);
+      o.connect(g); g.connect(out);
+      o.start(t0); o.stop(t0 + 0.035);
+      nodes.push(o, g);
+    }
+  } else if (ev.type === 'rocket') {
+    const o = ctx.createOscillator();
+    o.type = 'sawtooth';
+    o.frequency.setValueAtTime(160, at);
+    o.frequency.exponentialRampToValueAtTime(1150, at + 1.15);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, at);
+    g.gain.exponentialRampToValueAtTime(0.08, at + 0.07);
+    g.gain.exponentialRampToValueAtTime(0.0001, at + 1.2);
+    const lp = ctx.createBiquadFilter();
+    lp.type = 'lowpass'; lp.frequency.value = 2200;
+    o.connect(lp); lp.connect(g); g.connect(out);
+    o.start(at); o.stop(at + 1.25);
+    nodes.push(o, g);
+  } else if (ev.type === 'boom') {
+    const dur = 0.8 + (ev.size || 0.6) * 0.4;
+    const len = Math.floor(ctx.sampleRate * dur);
+    const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.2);
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, at);
+    g.gain.exponentialRampToValueAtTime(0.34 + (ev.size || 0.6) * 0.28, at + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
+    const lp = ctx.createBiquadFilter();
+    lp.type = 'lowpass'; lp.frequency.value = 460 + (ev.size || 0.6) * 300;
+    src.connect(lp); lp.connect(g); g.connect(out);
+    src.start(at);
+    nodes.push(src, g);
+    const sub = ctx.createOscillator();
+    sub.type = 'sine';
+    sub.frequency.setValueAtTime(70, at);
+    sub.frequency.exponentialRampToValueAtTime(38, at + 0.35);
+    const sg = ctx.createGain();
+    sg.gain.setValueAtTime(0.16, at);
+    sg.gain.exponentialRampToValueAtTime(0.0001, at + 0.4);
+    sub.connect(sg); sg.connect(out);
+    sub.start(at); sub.stop(at + 0.45);
+    nodes.push(sub, sg);
+  }
+  return nodes;
+}
+
+class AudioEngine {
+  constructor() {
+    this.started = false; this.enabled = true;
+    this.ctx = null; this.master = null;
+    this.windGain = null; this.crowdGain = null;
+    this.pending = []; this.nextEv = 0;
+  }
+  start() {
+    if (!this.started) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      const c = new AC();
+      this.started = true;
+      this.ctx = c;
+      c.resume().catch(() => {});
+      const unlock = () => c.state !== 'running' && c.resume().catch(() => {});
+      window.addEventListener('pointerdown', unlock);
+      window.addEventListener('keydown', unlock);
+      this.master = c.createGain();
+      this.master.gain.value = this.enabled ? 0.9 : 0;
+      this.master.connect(c.destination);
+      const len = c.sampleRate * 2;
+      const buf = c.createBuffer(1, len, c.sampleRate);
+      const d = buf.getChannelData(0);
+      let b = 0;
+      for (let i = 0; i < len; i++) { const w = Math.random() * 2 - 1; b = (b + 0.02 * w) / 1.02; d[i] = b * 3.5; }
+      const src = c.createBufferSource();
+      src.buffer = buf; src.loop = true;
+      this.windGain = c.createGain();
+      this.windGain.gain.value = 0.03;
+      const lp = c.createBiquadFilter();
+      lp.type = 'lowpass'; lp.frequency.value = 420; lp.Q.value = 0.7;
+      src.connect(lp); lp.connect(this.windGain); this.windGain.connect(this.master);
+      src.start();
+      const src2 = c.createBufferSource();
+      src2.buffer = buf; src2.loop = true;
+      this.crowdGain = c.createGain();
+      this.crowdGain.gain.value = 0;
+      const bp = c.createBiquadFilter();
+      bp.type = 'bandpass'; bp.frequency.value = 850; bp.Q.value = 0.5;
+      src2.connect(bp); bp.connect(this.crowdGain); this.crowdGain.connect(this.master);
+      src2.start();
+    } else if (this.ctx) {
+      this.ctx.resume().catch(() => {});
+    }
+  }
+  murmurFor(t) {
+    const shot = shotAt(Math.min(t, DURATION - 0.001)).shot;
+    const talky = shot.id === 'field' || shot.id === 'dusk' || shot.id === 'talk' || shot.id === 'crowd';
+    return (talky ? 0.05 : 0.016) * (0.5 + glow(t) * 0.6);
+  }
+  update(t) {
+    if (!this.ctx) return;
+    const ct = this.ctx.currentTime;
+    this.windGain.gain.setTargetAtTime(0.028 + 0.02 * Math.sin(t * 0.4) + glow(t) * 0.012, ct, 0.2);
+    this.crowdGain.gain.setTargetAtTime(this.murmurFor(t), ct, 0.3);
+  }
+  sync(t) {
+    for (const p of this.pending) {
+      if (p.t > t + 0.02) {
+        p.dead = true;
+        try { p.nodes.forEach((n) => n.stop && n.stop()); } catch (e) { /* already silent */ }
+      }
+    }
+    this.pending = this.pending.filter((p) => !p.dead);
+    this.nextEv = 0;
+    while (this.nextEv < AUDIO_EVENTS.length && AUDIO_EVENTS[this.nextEv].t <= t) this.nextEv++;
+  }
+  schedule(t) {
+    if (!this.ctx) return;
+    const ct = this.ctx.currentTime;
+    while (this.nextEv < AUDIO_EVENTS.length && AUDIO_EVENTS[this.nextEv].t < t + 1.2) {
+      const ev = AUDIO_EVENTS[this.nextEv++];
+      const at = ct + Math.max(0.02, ev.t - t);
+      const nodes = buildEvent(this.ctx, this.master, ev, at);
+      this.pending.push({ t: ev.t, nodes, dead: false });
+    }
+  }
+  setEnabled(on) {
+    this.enabled = on;
+    if (this.master) this.master.gain.value = on ? 0.9 : 0;
+  }
+}
+const audio = new AudioEngine();
+
+// offline render of the full sound track (used for the local video copy)
+async function renderAudioWav() {
+  const sr = 44100;
+  const len = Math.ceil(DURATION * sr);
+  const oc = new OfflineAudioContext(1, len, sr);
+  const master = oc.createGain();
+  master.gain.value = 0.9;
+  master.connect(oc.destination);
+  const nbuf = oc.createBuffer(1, sr * 2, sr);
+  const nd = nbuf.getChannelData(0);
+  let b = 0;
+  for (let i = 0; i < nd.length; i++) { const w = Math.random() * 2 - 1; b = (b + 0.02 * w) / 1.02; nd[i] = b * 3.5; }
+  const src = oc.createBufferSource();
+  src.buffer = nbuf; src.loop = true;
+  const windGain = oc.createGain();
+  const lp = oc.createBiquadFilter();
+  lp.type = 'lowpass'; lp.frequency.value = 420; lp.Q.value = 0.7;
+  src.connect(lp); lp.connect(windGain); windGain.connect(master);
+  src.start(0);
+  const src2 = oc.createBufferSource();
+  src2.buffer = nbuf; src2.loop = true;
+  const crowdGain = oc.createGain();
+  const bp = oc.createBiquadFilter();
+  bp.type = 'bandpass'; bp.frequency.value = 850; bp.Q.value = 0.5;
+  src2.connect(bp); bp.connect(crowdGain); crowdGain.connect(master);
+  src2.start(0);
+  for (let t = 0; t <= DURATION; t += 0.5) {
+    windGain.gain.setValueAtTime(0.028 + 0.02 * Math.sin(t * 0.4) + glow(t) * 0.012, t);
+    const shot = shotAt(Math.min(t, DURATION - 0.001)).shot;
+    const talky = shot.id === 'field' || shot.id === 'dusk' || shot.id === 'talk' || shot.id === 'crowd';
+    crowdGain.gain.setValueAtTime((talky ? 0.05 : 0.016) * (0.5 + glow(t) * 0.6), t);
+  }
+  for (const ev of AUDIO_EVENTS) buildEvent(oc, master, ev, ev.t);
+  const buf = await oc.startRendering();
+  const ch = buf.getChannelData(0);
+  const n = ch.length;
+  const bytes = new Uint8Array(44 + n * 2);
+  const dv = new DataView(bytes.buffer);
+  const wstr = (o, s) => { for (let i = 0; i < s.length; i++) bytes[o + i] = s.charCodeAt(i); };
+  wstr(0, 'RIFF'); dv.setUint32(4, 36 + n * 2, true); wstr(8, 'WAVE'); wstr(12, 'fmt ');
+  dv.setUint32(16, 16, true); dv.setUint16(20, 1, true); dv.setUint16(22, 1, true);
+  dv.setUint32(24, sr, true); dv.setUint32(28, sr * 2, true); dv.setUint16(32, 2, true); dv.setUint16(34, 16, true);
+  wstr(36, 'data'); dv.setUint32(40, n * 2, true);
+  for (let i = 0; i < n; i++) {
+    const s = Math.max(-1, Math.min(1, ch[i]));
+    dv.setInt16(44 + i * 2, s < 0 ? s * 32768 : s * 32767, true);
+  }
+  let b64 = '';
+  const CHUNK = 0x8000;
+  for (let i = 0; i < bytes.length; i += CHUNK) b64 += String.fromCharCode.apply(null, bytes.subarray(i, Math.min(i + CHUNK, bytes.length)));
+  return { sr, base64: btoa(b64) };
+}
+
+// ============================================================================
+// per-frame world update — everything is a function of film time
+// ============================================================================
+function lookUpBlend(t) {
+  const { shot } = shotAt(t);
+  if (shot.id !== 'fireworks' && shot.id !== 'finale') return 0;
+  const inn = sstep(clamp((t - shot.start) / 1.2, 0, 1));
+  const outt = shot.id === 'finale' ? 1 : sstep(clamp((shot.start + shot.dur - t) / 1.0, 0, 1));
+  return inn * outt;
+}
+
+function updateHobbits(t) {
+  const lu = lookUpBlend(t);
+  for (const h of hobbits) {
+    const u = h.userData, ph = u.phase;
+    const [legL, legR] = u.legs;
+    const [armL, armR] = u.arms;
+    const head = u.head;
+    let walk = 0, bob = 0, nod = 0, armRUp = 0;
+    const role = u.role;
+    if (role === 'bilbo') {
+      armR.rotation.x = -0.35 - (0.55 + 0.55 * Math.sin(t * 5.2)) * 0.95;
+      armL.rotation.x = 0.12;
+      bob = Math.sin(t * 2.1) * 0.02;
+      nod = 0.06 * Math.sin(t * 1.4 + ph);
+    } else if (role === 'stroll') {
+      const rng0 = u.range, span = rng0[1] - rng0[0];
+      const prog = ((t * u.speed + u.z0) - rng0[0]) % span;
+      const dir = Math.floor(((t * u.speed + u.z0) - rng0[0]) / span) % 2 === 0 ? 1 : -1;
+      const z = dir === 1 ? rng0[0] + prog : rng0[1] - prog;
+      const pxy = pathXY(z);
+      h.position.x = pxy.x + u.side;
+      h.position.z = z;
+      h.rotation.y = dir === 1 ? pxy.yaw : pxy.yaw + Math.PI;
+      walk = t * (3.2 + u.speed * 7) + ph;
+      bob = Math.abs(Math.sin(walk)) * 0.05;
+      armL.rotation.x = Math.sin(walk) * 0.55;
+      armR.rotation.x = -Math.sin(walk) * 0.55;
+    } else if (role === 'lanewalk') {
+      const rng0 = u.range, span = rng0[1] - rng0[0];
+      const prog = ((t * u.speed + u.x0) - rng0[0]) % span;
+      const dir = Math.floor(((t * u.speed + u.x0) - rng0[0]) / span) % 2 === 0 ? 1 : -1;
+      const x = dir === 1 ? rng0[0] + prog : rng0[1] - prog;
+      h.position.x = x;
+      h.position.z = -13.0;
+      h.rotation.y = dir === 1 ? Math.PI / 2 : -Math.PI / 2;
+      walk = t * (3.2 + u.speed * 7) + ph;
+      bob = Math.abs(Math.sin(walk)) * 0.05;
+      armL.rotation.x = Math.sin(walk) * 0.55;
+      armR.rotation.x = -Math.sin(walk) * 0.55;
+    } else if (role === 'child') {
+      const a = u.cp + t * u.cw;
+      h.position.x = Math.cos(a) * u.cr;
+      h.position.z = 16 + Math.sin(a) * u.cr * 0.6;
+      h.rotation.y = -a + Math.PI / 2;
+      h.position.y = Math.abs(Math.sin(t * 9 + u.cp)) * 0.18;
+      walk = t * 11 + u.cp;
+      armL.rotation.x = -2.2 + Math.sin(walk) * 0.4;
+      armR.rotation.x = -2.2 - Math.sin(walk) * 0.4;
+    } else if (role === 'gossip') {
+      nod = 0.14 * Math.sin(t * 1.8 + ph);
+      armRUp = Math.max(0, Math.sin(t * 0.9 + ph)) ** 3 * 0.9;
+      armR.rotation.x = -0.3 - armRUp;
+      armL.rotation.x = 0.12 - armRUp * 0.4;
+      h.rotation.y += Math.sin(t * 0.7 + ph) * 0.008;
+    } else if (role === 'worker') {
+      armR.rotation.x = -0.5 - 0.3 * Math.sin(t * 2.2 + ph);
+      armL.rotation.x = -0.4 - 0.3 * Math.cos(t * 2.2 + ph);
+      nod = 0.08 * Math.sin(t * 1.6 + ph);
+    } else { // watcher
+      h.rotation.y += Math.sin(t * 0.4 + ph) * 0.006;
+      nod = 0.05 * Math.sin(t * 0.8 + ph);
+      armL.rotation.x = 0.1 * Math.sin(t * 0.5 + ph);
+      armR.rotation.x = 0.1 * Math.cos(t * 0.5 + ph);
+    }
+    if (role !== 'bilbo') {
+      const isWalk = role === 'stroll' || role === 'lanewalk' || role === 'child';
+      const swing = isWalk ? (role === 'child' ? 0.5 : 0.62) : 0.03;
+      const ph2 = isWalk ? walk : t * 0.9 + ph;
+      legL.rotation.x = Math.sin(ph2) * swing;
+      legR.rotation.x = -Math.sin(ph2) * swing;
+    }
+    h.position.y = (role === 'stroll' || role === 'lanewalk') ? bob : 0;
+    head.rotation.x = lerp(nod, -0.78, lu);
+    head.rotation.y = role === 'gossip' ? 0 : 0;
+    head.rotation.z = 0;
+  }
+}
+
+function updateFireworks(t) {
+  for (const fw of fireworks) {
+    const age = t - fw.t0;
+    if (age < -0.2 || age > 1.15 + fw.life + 0.2) { fw.pts.visible = false; continue; }
+    fw.pts.visible = true;
+    const pos = fw.geo.attributes.position.array;
+    if (age > 1.15 && !fw.burstP) { fw.pts.visible = false; continue; }
+    if (age <= 1.15) {
+      const g = -2.5;
+      for (let i = 0; i < 6; i++) {
+        const a = age - i * 0.06;
+        const aa = Math.max(0.05, a);
+        pos[i * 3] = fw.x + fw.vx * aa;
+        pos[i * 3 + 1] = fw.y + fw.vy * aa + 0.5 * g * aa * aa;
+        pos[i * 3 + 2] = fw.z + fw.vz * aa;
+      }
+      const bx = fw.x + fw.vx * age, by = fw.y + fw.vy * age + 0.5 * g * age * age, bz = fw.z + fw.vz * age;
+      for (let i = 6; i < 96; i++) {
+        pos[i * 3] = bx; pos[i * 3 + 1] = by; pos[i * 3 + 2] = bz;
+      }
+      fw.mat.opacity = 1;
+      fw.burstP = [bx, by, bz];
+    } else {
+      const ae = age - 1.15;
+      const bx = fw.burstP[0], by = fw.burstP[1], bz = fw.burstP[2];
+      for (let i = 6; i < 96; i++) {
+        const j = i - 6;
+        pos[i * 3] = bx + fw.dirs[j * 3] * fw.spd[j] * ae;
+        pos[i * 3 + 1] = by + fw.dirs[j * 3 + 1] * fw.spd[j] * ae - 1.6 * ae * ae;
+        pos[i * 3 + 2] = bz + fw.dirs[j * 3 + 2] * fw.spd[j] * ae;
+      }
+      for (let i = 0; i < 6; i++) { pos[i * 3] = bx; pos[i * 3 + 1] = by; pos[i * 3 + 2] = bz; }
+      fw.mat.opacity = Math.max(0, 1 - ae / fw.life);
+    }
+    fw.geo.attributes.position.needsUpdate = true;
+  }
+}
+
+function updateEnv(t) {
+  skyColor.copy(skyC(t));
+  scene.fog.color.copy(fogC(t));
+  sun.color.copy(sunC(t));
+  sun.intensity = sunI(t);
+  hemi.intensity = hemiI(t);
+  moon.intensity = moonI(t);
+  stars.material.opacity = starO(t);
+  const sa = sunAngle(t);
+  sun.position.set(Math.cos(sa) * 190, Math.sin(sa) * 190, 30);
+  sunDisc.position.set(Math.cos(sa) * 178, Math.sin(sa) * 178, 28);
+  const ma = moonAngle(t);
+  moon.position.set(-Math.cos(ma) * 190, Math.sin(ma) * 190, -30);
+  moonDisc.position.set(-Math.cos(ma) * 178, Math.sin(ma) * 178, -28);
+  const gl = glow(t);
+  for (let i = 0; i < windowMats.length; i++) windowMats[i].emissiveIntensity = gl * (0.72 + 0.28 * Math.sin(t * 0.6 + i * 1.7));
+  for (const m of lanternMats) m.emissiveIntensity = gl * (0.85 + 0.15 * Math.sin(t * 8.5));
+  for (const m of stringMats) m.emissiveIntensity = gl * 0.9;
+  for (let i = 0; i < candleFlames.length; i++) {
+    const f = candleFlames[i];
+    f.position.y = 2.22 + Math.sin(t * 12 + f.position.x * 3.1) * 0.04;
+  }
+  for (const s of smokePuffs) {
+    const u = s.userData;
+    const age = ((t * u.speed + u.off) % 1);
+    s.position.set(u.base.x + Math.sin((age + u.drift) * 2.1) * 0.6, u.base.y + age * 3.4, u.base.z + Math.cos(age * 2.1) * 0.4);
+    s.scale.setScalar(1 + age * 2.1);
+    s.material.opacity = 0.3 * (1 - age);
+  }
+  millRef.wheel.rotation.z = t * 0.45;
+}
+
+let lastCaption = null;
+function updateScene(t) {
+  const { shot, idx, lt } = shotAt(t);
+  const sp = sampleShot(shot, lt);
+  camera.position.set(sp.p[0], sp.p[1], sp.p[2]);
+  camera.lookAt(sp.l[0], sp.l[1], sp.l[2]);
+  if (camera.fov !== shot.fov) { camera.fov = shot.fov; camera.updateProjectionMatrix(); }
+  updateEnv(t);
+  updateHobbits(t);
+  updateFireworks(t);
+  fadeEl.style.opacity = fadeOf(t).toFixed(3);
+  // UI (throttled where possible)
+  if (idx !== prevShot) {
+    prevShot = idx;
+    shotnameEl.textContent = shot.title;
+  }
+  const cap = (showCap && shot.cap >= 0) ? CAPTIONS[shot.cap] : '';
+  if (cap !== lastCaption) {
+    lastCaption = cap;
+    capEl.textContent = cap;
+    if (cap) capEl.classList.add('show');
+    else capEl.classList.remove('show');
+  }
+  fillEl.style.width = (t / DURATION * 100).toFixed(3) + '%';
+  if (Math.abs(t - lastTcT) > 0.15) {
+    lastTcT = t;
+    tcEl.textContent = `${fmt(t)} / ${fmt(DURATION)}`;
+  }
+}
+
+// ============================================================================
+// player state + UI wiring
+// ============================================================================
+const $ = (id) => document.getElementById(id);
+const capEl = $('caption'), fadeEl = $('fade'), titleEl = $('title');
+const bPlay = $('bPlay'), bPrev = $('bPrev'), bNext = $('bNext'), bCap = $('bCap'), bSound = $('bSound'), bFull = $('bFull');
+const fillEl = $('fill'), marksEl = $('marks'), tcEl = $('tc'), shotnameEl = $('shotname'), scrubEl = $('scrub');
+
+let playing = false, showCap = true, hideUI = false, prevShot = -1, lastTcT = -9;
+let time = 0;
+
+function fmt(s) {
+  s = Math.max(0, Math.floor(s));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+}
+for (const s of SHOTS) {
+  const m = document.createElement('i');
+  m.style.left = (s.start / DURATION * 100) + '%';
+  marksEl.appendChild(m);
+}
+function seek(t) {
+  time = clamp(t, 0, DURATION - 0.001);
+  audio.sync(time);
+  updateScene(time);
+  renderer.render(scene, camera);
+}
+function togglePlay() {
+  if (time >= DURATION - 0.05) seek(0);
+  playing = !playing;
+  bPlay.textContent = playing ? 'Pause' : 'Play';
+  if (playing) audio.start();
+}
+bPlay.onclick = togglePlay;
+bPrev.onclick = () => { const { idx } = shotAt(time); seek(SHOTS[Math.max(0, idx - 1)].start); };
+bNext.onclick = () => { const { idx } = shotAt(time); seek(SHOTS[Math.min(SHOTS.length - 1, idx + 1)].start); };
+bCap.onclick = () => {
+  showCap = !showCap;
+  bCap.classList.toggle('on', showCap);
+  document.body.classList.toggle('nocap', !showCap);
+  lastCaption = null;
+  updateScene(time);
+};
+bSound.onclick = () => {
+  audio.setEnabled(!audio.enabled);
+  bSound.classList.toggle('on', audio.enabled);
+};
+bFull.onclick = () => {
+  if (document.fullscreenElement) document.exitFullscreen();
+  else document.documentElement.requestFullscreen().catch(() => {});
+};
+scrubEl.addEventListener('pointerdown', (e) => {
+  const r = scrubEl.getBoundingClientRect();
+  seek((e.clientX - r.left) / r.width * DURATION);
+  const move = (ev) => { const rr2 = scrubEl.getBoundingClientRect(); seek((ev.clientX - rr2.left) / rr2.width * DURATION); };
+  const up = () => { window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); };
+  window.addEventListener('pointermove', move);
+  window.addEventListener('pointerup', up);
+});
+document.addEventListener('keydown', (e) => {
+  if (e.code === 'Space') { e.preventDefault(); if (!document.body.classList.contains('titlemode')) togglePlay(); }
+  else if (e.key === '[') bPrev.onclick();
+  else if (e.key === ']') bNext.onclick();
+  else if (e.key === 'c') bCap.onclick();
+  else if (e.key === 'm') bSound.onclick();
+  else if (e.key === 'f') bFull.onclick();
+});
+let uiTimer;
+function showUI() {
+  $('ui').classList.add('show');
+  document.body.classList.remove('hideui');
+  clearTimeout(uiTimer);
+  uiTimer = setTimeout(() => { if (playing) { $('ui').classList.remove('show'); document.body.classList.add('hideui'); } }, 2400);
+}
+window.addEventListener('pointermove', showUI);
+
+const playBtn = $('play');
+function start() {
+  titleEl.classList.add('gone');
+  document.body.classList.remove('titlemode');
+  $('ui').classList.add('show');
+  playing = true;
+  bPlay.textContent = 'Pause';
+  audio.start();
+  audio.sync(time);
+}
+playBtn.onclick = start;
+
+// deep links
+const q = new URLSearchParams(location.search);
+const qT = parseFloat(q.get('t'));
+if (!isNaN(qT)) time = clamp(qT, 0, DURATION - 0.001);
+
+// ============================================================================
+// main loop — wall-clock only drives time forward when playing
+// ============================================================================
+let lastT = performance.now();
+function animate(now) {
+  requestAnimationFrame(animate);
+  if (RECORD) return; // recording is driven frame-by-frame from outside
+  const dt = Math.min(0.05, (now - lastT) / 1000);
+  lastT = now;
+  if (playing) {
+    time = Math.min(time + dt, DURATION);
+    if (time >= DURATION) { time = DURATION; playing = false; bPlay.textContent = 'Play'; }
+    audio.update(time);
+    audio.schedule(time);
+    updateScene(time);
+  }
+  renderer.render(scene, camera);
+}
+
+// ============================================================================
+// boot
+// ============================================================================
+window.addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+
+if (RECORD) {
+  document.body.classList.remove('titlemode');
+  document.body.classList.add('recordmode');
+  titleEl.remove();
+  playing = true; // so the transport/captions update during capture
+  seek(0);
+} else {
+  seek(time);
+  playBtn.disabled = false;
+  playBtn.textContent = q.get('autoplay') !== null ? 'Loading' : 'Play';
+  if (q.get('autoplay') !== null) setTimeout(start, 400);
+}
+requestAnimationFrame(animate);
+
+// public API used by the offline recorder (and handy for debugging)
+window.FILM = {
+  ready: false,
+  duration: DURATION,
+  seek(t) { seek(t); },
+  renderNow() { renderer.render(scene, camera); },
+  probe() {
+    const gl = renderer.getContext();
+    const px = new Uint8Array(4);
+    gl.readPixels(Math.floor(gl.drawingBufferWidth / 2), Math.floor(gl.drawingBufferHeight / 2), 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px);
+    return Array.from(px);
+  },
+  renderAudioWav,
+  qa() {
+    return {
+      cam: [camera.position.x, camera.position.y, camera.position.z],
+      fov: camera.fov,
+      hobbits: hobbits.length,
+      fwVisible: fireworks.filter((f) => f.pts.visible).length,
+      bilbo: [bilboRef.h.position.x, bilboRef.h.position.y, bilboRef.h.position.z],
+      glow: glow(time),
+      shot: shotAt(time).shot.id,
+      caption: capEl.textContent,
+    };
+  },
+};
+window.FILM.ready = true;
+</script>
+</body>
+</html>

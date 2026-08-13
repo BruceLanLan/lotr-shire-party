@@ -41,6 +41,7 @@
 | --- | --- | --- | --- |
 | **DeepSeek V4 Pro** | 2026-08-13 | https://brucelanlan.github.io/lotr-shire-party/ | 初版短题 |
 | **Grok 4.6** | 2026-08-13 | https://brucelanlan.github.io/lotr-shire-party/models/grok-4.6/ | 初版短题 |
+| **DeepSeek V4 Pro (0813)** | 2026-08-14 | https://brucelanlan.github.io/lotr-shire-party/models/deepseek-v4-pro-0813/ | 收紧后完整题面（PROMPT.md） |
 
 根目录是 DeepSeek V4 Pro 的原版，保留不动。这两部都是在题面收紧**之前**交的卷；之后的模型请按 [PROMPT.md](PROMPT.md) 的工艺门槛来。
 
@@ -119,6 +120,7 @@ The full craft bar is in [PROMPT.md](PROMPT.md).
 | --- | --- | --- | --- |
 | **DeepSeek V4 Pro** | 2026-08-13 | https://brucelanlan.github.io/lotr-shire-party/ | original short prompt |
 | **Grok 4.6** | 2026-08-13 | https://brucelanlan.github.io/lotr-shire-party/models/grok-4.6/ | original short prompt |
+| **DeepSeek V4 Pro (0813)** | 2026-08-14 | https://brucelanlan.github.io/lotr-shire-party/models/deepseek-v4-pro-0813/ | tightened brief (PROMPT.md) |
 
 The two films above were submitted **before** the craft bar was tightened. Later runs should follow [PROMPT.md](PROMPT.md).
 
