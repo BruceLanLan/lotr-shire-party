@@ -2,67 +2,59 @@
 
 > [English version below](#english-version)
 
-这是一个**模型测评仓库**。后来的模型读完本 README 与这条 prompt 之后，应生成自己的版本，并作为一条新的 Live Demo 挂到本仓库，**不要覆盖已有模型的页面**。
+这是一个**模型测评仓库**。读完 [PROMPT.md](PROMPT.md)（或下面这条题）之后，生成你自己的版本，作为一条新的 Live Demo 挂上来。**不要覆盖已有模型的页面。**
 
-## Prompt（必须按此生成）
+完整题面（中英对照、工艺门槛、交卷方式）以 **[PROMPT.md](PROMPT.md)** 为准。
 
-> **A complete, self-contained Three.js scene that procedurally renders and
-> animates the opening paragraph of *The Lord of the Rings* as a short movie
-> in the browser. Everything on screen is generated in code at load time —
-> no textures, models, or other assets. One HTML file, one CDN import of
-> Three.js.**
+## Prompt
 
-即《魔戒同盟》开篇段落（也是片中的字幕原文）：
+做一部能在浏览器里播放的短片，不是幻灯片，也不是用视频模型生成的成片。
+
+> **一个自包含的 Three.js 短片：把《魔戒》开篇段落程序化地演成浏览器里的电影。**
+> 画面与声音全部在加载时用代码生成——禁止贴图、模型、音频文件或其他素材。
+> 一个 HTML 文件，只从 CDN 引入一次 Three.js。
+> 必须是**同一套可复用的世界**：袋底洞、小路、霍比屯、宴会场是同一个地方，镜头在里面走位，而不是每切一刀另搭一座布景。
+> 霍比特人要能走、能停、面向去向；至少八个有动机的镜头（推 / 升 / 持 / 切），禁止一个大远景用两三个关键帧晃十几秒。
+> 声音在点击 Play 时启动，第一秒就要听得见，并跟影片时间绑定。
+
+字幕必须逐字引用《魔戒同盟》开篇：
 
 > When Mr. Bilbo Baggins of Bag End announced that he would shortly be
 > celebrating his eleventy-first birthday with a party of special
 > magnificence, there was much talk and excitement in Hobbiton.
 
-**不要**用 MiniMax / Runway / 静帧 Ken Burns / 实拍素材去交差。这条 prompt 要的是：一个自包含的、程序化 Three.js 浏览器短片。
+禁止 MiniMax / Runway / 静帧 Ken Burns / 实拍剪辑。不要抄本仓库已有的 `index.html`。
+
+工艺细则（同一套世界、村子密度、走位、导演、天光、声画同步）见 [PROMPT.md](PROMPT.md)。
 
 ## 后来的模型请这样交卷
 
-1. 读完上面的 prompt 和本仓库现有 Live Demo，然后**重新写一部你自己的电影**，不要复制已有 `index.html`。
-2. **不要覆盖**根目录 `index.html`（那是 DeepSeek V4 Pro），也不要改其他 `models/<model>/` 目录。
-3. 把你的单文件电影写到 `models/<your-model-id>/index.html`。
-4. 在下面的 Live Demo 表里加一行，并 push，让 GitHub Pages 发布新网址：
+1. 读 [PROMPT.md](PROMPT.md) 和现有 Live Demo，然后**另写一部电影**。
+2. **不要覆盖**根目录 `index.html`（DeepSeek V4 Pro），也不要改其他 `models/<model>/`。
+3. 写到 `models/<your-model-id>/index.html`。
+4. 在下面的表里加一行并 push：
    `https://brucelanlan.github.io/lotr-shire-party/models/<your-model-id>/`
 
 ## Live Demo
 
-| 模型 | 日期 | 在线观看 |
-| --- | --- | --- |
-| **DeepSeek V4 Pro** | 2026-08-13 | https://brucelanlan.github.io/lotr-shire-party/ |
-| **Grok 4.6** | 2026-08-13 | https://brucelanlan.github.io/lotr-shire-party/models/grok-4.6/ |
+| 模型 | 日期 | 在线观看 | 所用题面 |
+| --- | --- | --- | --- |
+| **DeepSeek V4 Pro** | 2026-08-13 | https://brucelanlan.github.io/lotr-shire-party/ | 初版短题 |
+| **Grok 4.6** | 2026-08-13 | https://brucelanlan.github.io/lotr-shire-party/models/grok-4.6/ | 初版短题 |
 
-根目录页面就是 DeepSeek V4 Pro 的原版，保留不动。
-
-## 场景里应有什么（prompt 落地）
-
-- **袋底洞**——山丘上的圆形绿门、圆窗、烟囱炊烟
-- **霍比屯**——村舍或斯密奥洞、花园；入夜后窗户亮灯
-- **宴会场地**——条纹帐篷、长桌、一百一十一岁生日蛋糕、大宴会树、灯笼与串灯
-- **一群霍比特人**——门口的比尔博、议论的人群、小径上的行人、围着场地跑的孩子；烟花时抬头
-- **白天 → 黄昏 → 夜晚**，多镜头，以烟花收尾
+根目录是 DeepSeek V4 Pro 的原版，保留不动。这两部都是在题面收紧**之前**交的卷；之后的模型请按 [PROMPT.md](PROMPT.md) 的工艺门槛来。
 
 ## 播放器
-
-电影播放器形式：上下黑边、暗角、镜头间淡入淡出、原文字幕，以及控制栏。
 
 | 按键 | 功能 |
 | --- | --- |
 | `空格` | 播放 / 暂停 |
 | `[` / `]` | 上一镜头 / 下一镜头 |
-| `c` | 字幕开关 |
-| `m` | 声音开关 |
+| `c` | 字幕 |
+| `m` | 声音 |
 | `f` | 全屏 |
 
-声音用 WebAudio 实时合成（无音频文件）。
-
-## 深链
-
-- `?t=<秒>`：跳到某个时刻
-- `&autoplay`：跳过片头直接开演
+深链：`?t=<秒>`、`&autoplay`
 
 ## 本地运行
 
@@ -74,59 +66,63 @@ open http://127.0.0.1:8123/models/grok-4.6/
 
 ## 说明与致谢
 
-- 播放器外壳与整体形式参考
-  [karpathy.ai/lotr-movie](https://karpathy.ai/lotr-movie/)。
+- 播放器外壳与工艺上限参考
+  [karpathy.ai/lotr-movie](https://karpathy.ai/lotr-movie/)（Claude Opus 5，Karpathy，约 5500 行）。
+  那是多文件 + 旁白音轨的一章书；本题仍要求单文件、无素材，但世界复用、走位、镜头走廊按那个标准看。
 - 字幕引用 J. R. R. Tolkien《魔戒同盟》开篇段落。
-- 根目录电影由 **deepseek-v4-pro** 生成；`models/grok-4.6/` 由 **Grok 4.6** 按同一条 prompt 另写，未覆盖前者。
 
 ---
 
 # English version
 
-This repo is a **model arena**. After reading the prompt below, generate *your own* self-contained Three.js short and publish it as a new Live Demo. **Do not overwrite existing model pages.**
+This repo is a **model arena**. Read [PROMPT.md](PROMPT.md) (or the brief below), generate *your own* film, and publish it as a new Live Demo. **Do not overwrite existing model pages.**
 
-## The prompt
+The canonical brief — both languages, craft bar, and how to submit — is **[PROMPT.md](PROMPT.md)**.
 
-> **A complete, self-contained Three.js scene that procedurally renders and
-> animates the opening paragraph of *The Lord of the Rings* as a short movie
-> in the browser. Everything on screen is generated in code at load time —
-> no textures, models, or other assets. One HTML file, one CDN import of
-> Three.js.**
+## Prompt
 
-The captions quote the opening paragraph of *The Fellowship of the Ring*:
+Make a short movie that plays in the browser. Not a slideshow. Not a video-model reel.
+
+> **A complete, self-contained Three.js short that procedurally renders and
+> animates the opening paragraph of *The Lord of the Rings* as a movie in the
+> browser.** Everything on screen and in the speakers is generated in code at
+> load time — no textures, models, audio files, or other assets. One HTML file,
+> one CDN import of Three.js.
+> It must be **one shared world**: Bag End, the lane, Hobbiton, and the party
+> field are the same place. Shots are cameras in that world, not a new diorama
+> per cut. Hobbits walk and idle and face where they go. At least eight
+> motivated shots (dolly / crane / hold / cut) — do not Ken-Burns a wide plate
+> with two lerp keys. Start sound on Play; it must be audible from the first
+> second and locked to film time.
+
+Captions quote the opening paragraph of *The Fellowship of the Ring* verbatim:
 
 > When Mr. Bilbo Baggins of Bag End announced that he would shortly be
 > celebrating his eleventy-first birthday with a party of special
 > magnificence, there was much talk and excitement in Hobbiton.
 
-Do **not** turn this into a MiniMax / Runway / Ken Burns stills reel. The prompt is a procedural Three.js movie in one HTML file.
+No MiniMax / Runway / Ken Burns stills / live-action edit. Do not copy an existing `index.html` in this repo.
+
+The full craft bar is in [PROMPT.md](PROMPT.md).
 
 ## How to add your run
 
-1. Write a new movie. Do not copy an existing `index.html`.
+1. Read [PROMPT.md](PROMPT.md) and the current Live Demos, then write a new film.
 2. Leave the root `index.html` (DeepSeek V4 Pro) and every other `models/<model>/` folder untouched.
 3. Save yours as `models/<your-model-id>/index.html`.
-4. Add a row to the Live Demo table and push so Pages serves
-   `https://brucelanlan.github.io/lotr-shire-party/models/<your-model-id>/`.
+4. Add a row to the table and push:
+   `https://brucelanlan.github.io/lotr-shire-party/models/<your-model-id>/`
 
 ## Live Demo
 
-| Model | Date | Watch |
-| --- | --- | --- |
-| **DeepSeek V4 Pro** | 2026-08-13 | https://brucelanlan.github.io/lotr-shire-party/ |
-| **Grok 4.6** | 2026-08-13 | https://brucelanlan.github.io/lotr-shire-party/models/grok-4.6/ |
+| Model | Date | Watch | Brief |
+| --- | --- | --- | --- |
+| **DeepSeek V4 Pro** | 2026-08-13 | https://brucelanlan.github.io/lotr-shire-party/ | original short prompt |
+| **Grok 4.6** | 2026-08-13 | https://brucelanlan.github.io/lotr-shire-party/models/grok-4.6/ | original short prompt |
 
-## What's in the scene
-
-- **Bag End** — the Hill, the round green door, round windows, chimney smoke
-- **Hobbiton** — smials / cottages, gardens; windows light at dusk
-- **The party field** — striped marquees, long tables, an eleventy-first cake, the Party Tree, lanterns
-- **Hobbits** — Bilbo at his door, gossip, strollers, children; everyone looks up for the fireworks
-- **Day → dusk → night**, several shots, fireworks finale
+The two films above were submitted **before** the craft bar was tightened. Later runs should follow [PROMPT.md](PROMPT.md).
 
 ## The player
-
-Letterbox, vignette, dips to black, captions, transport bar.
 
 | Key | Action |
 | --- | --- |
@@ -136,9 +132,9 @@ Letterbox, vignette, dips to black, captions, transport bar.
 | `m` | sound |
 | `f` | fullscreen |
 
-Audio is synthesized with WebAudio (no files).
+Deep links: `?t=<seconds>`, `&autoplay`
 
 ## Credits
 
-Player chrome inspired by [karpathy.ai/lotr-movie](https://karpathy.ai/lotr-movie/).
-Root film by **deepseek-v4-pro**. `models/grok-4.6/` is a separate film by **Grok 4.6** from the same prompt.
+Player chrome and the craft ceiling: [karpathy.ai/lotr-movie](https://karpathy.ai/lotr-movie/) (Claude Opus 5, for Karpathy, ~5500 lines). That film is multi-file with a narration track and covers a chapter. This brief stays one file and asset-free, but judges world reuse, locomotion, and camera corridors against that standard.
+Captions quote J. R. R. Tolkien, *The Fellowship of the Ring*.
