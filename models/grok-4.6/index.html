@@ -122,7 +122,7 @@
   <p class="src">J.&nbsp;R.&nbsp;R.&nbsp;Tolkien &mdash; <em>The Fellowship of the Ring</em>, Book&nbsp;I, Chapter&nbsp;I</p>
   <p class="by">Procedural film &middot; Grok 4.6</p>
   <button id="play" disabled>Loading</button>
-  <div id="hint">space play &nbsp;&middot;&nbsp; [ ] shots &nbsp;&middot;&nbsp; c captions &nbsp;&middot;&nbsp; m sound &nbsp;&middot;&nbsp; f fullscreen</div>
+  <div id="hint">click play for sound &nbsp;&middot;&nbsp; space play &nbsp;&middot;&nbsp; [ ] shots &nbsp;&middot;&nbsp; m mute</div>
 </div>
 
 <script type="importmap">
@@ -213,19 +213,23 @@ function heightAt(x, z) {
 class MovieAudio {
   constructor() { this.started = false; this.enabled = true; }
   start() {
-    if (this.started) { this.ctx && this.ctx.resume().catch(() => {}); return; }
+    // Must stay synchronous: AudioContext has to be created inside the click.
+    if (this.started) {
+      if (this.ctx && this.ctx.state !== 'running') this.ctx.resume().catch(() => {});
+      return;
+    }
     const AC = window.AudioContext || window.webkitAudioContext;
     if (!AC) return;
     this.started = true;
     const c = new AC();
     this.ctx = c;
     c.resume().catch(() => {});
-    const unlock = () => c.state !== 'running' && c.resume().catch(() => {});
+    const unlock = () => { if (c.state !== 'running') c.resume().catch(() => {}); };
     window.addEventListener('pointerdown', unlock);
     window.addEventListener('keydown', unlock);
 
     this.master = c.createGain();
-    this.master.gain.value = 0.88;
+    this.master.gain.value = 1;
     this.master.connect(c.destination);
 
     const len = c.sampleRate * 2;
@@ -244,35 +248,52 @@ class MovieAudio {
       return g;
     };
 
-    this.windGain = noise(0.045);
+    this.windGain = noise(0.12);
     const windLP = c.createBiquadFilter();
-    windLP.type = 'lowpass'; windLP.frequency.value = 360;
+    windLP.type = 'lowpass'; windLP.frequency.value = 320;
     this.windGain.disconnect(); this.windGain.connect(windLP); windLP.connect(this.master);
 
-    this.crowdGain = noise(0.0);
+    this.crowdGain = noise(0.04);
     const crowdBP = c.createBiquadFilter();
-    crowdBP.type = 'bandpass'; crowdBP.frequency.value = 880; crowdBP.Q.value = 0.55;
+    crowdBP.type = 'bandpass'; crowdBP.frequency.value = 820; crowdBP.Q.value = 0.7;
     this.crowdGain.disconnect(); this.crowdGain.connect(crowdBP); crowdBP.connect(this.master);
 
+    // soft pastoral pad so the film is never silent
+    this.padGain = c.createGain();
+    this.padGain.gain.value = 0.05;
+    this.padGain.connect(this.master);
+    const padFilter = c.createBiquadFilter();
+    padFilter.type = 'lowpass'; padFilter.frequency.value = 1400;
+    padFilter.connect(this.padGain);
+    for (const [freq, type, amp] of [[196, 'sine', 0.55], [246.94, 'sine', 0.4], [293.66, 'triangle', 0.18]]) {
+      const o = c.createOscillator();
+      o.type = type; o.frequency.value = freq;
+      const g = c.createGain(); g.gain.value = amp;
+      o.connect(g); g.connect(padFilter); o.start();
+    }
+    const lfo = c.createOscillator(); lfo.frequency.value = 0.12;
+    const lfoG = c.createGain(); lfoG.gain.value = 0.012;
+    lfo.connect(lfoG); lfoG.connect(this.padGain.gain); lfo.start();
+
     this.birdTimer = setInterval(() => {
-      if (!this.enabled || !this.ctx) return;
-      const n = Math.random() < 0.55 ? 2 : 3;
+      if (!this.enabled || !this.ctx || this.ctx.state !== 'running') return;
+      const n = Math.random() < 0.45 ? 2 : 3;
       for (let i = 0; i < n; i++) {
-        const t0 = c.currentTime + Math.random() * 0.55;
+        const t0 = c.currentTime + Math.random() * 0.45;
         const o = c.createOscillator();
         o.type = 'sine';
-        const f0 = 2100 + Math.random() * 1700;
+        const f0 = 2000 + Math.random() * 1900;
         o.frequency.setValueAtTime(f0, t0);
-        o.frequency.exponentialRampToValueAtTime(f0 * 1.45, t0 + 0.05);
-        o.frequency.exponentialRampToValueAtTime(f0 * 0.82, t0 + 0.13);
+        o.frequency.exponentialRampToValueAtTime(f0 * 1.5, t0 + 0.06);
+        o.frequency.exponentialRampToValueAtTime(f0 * 0.78, t0 + 0.16);
         const g = c.createGain();
         g.gain.setValueAtTime(0, t0);
-        g.gain.linearRampToValueAtTime(0.045, t0 + 0.02);
-        g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.15);
+        g.gain.linearRampToValueAtTime(0.14, t0 + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.18);
         o.connect(g); g.connect(this.master);
-        o.start(t0); o.stop(t0 + 0.18);
+        o.start(t0); o.stop(t0 + 0.22);
       }
-    }, 2800);
+    }, 1800);
   }
   rocket() {
     if (!this.ctx || !this.enabled) return;
@@ -280,34 +301,34 @@ class MovieAudio {
     const o = c.createOscillator();
     o.type = 'sawtooth';
     o.frequency.setValueAtTime(170, t0);
-    o.frequency.exponentialRampToValueAtTime(1080, t0 + 1.25);
+    o.frequency.exponentialRampToValueAtTime(1180, t0 + 1.2);
     const g = c.createGain();
     g.gain.setValueAtTime(0.0001, t0);
-    g.gain.exponentialRampToValueAtTime(0.11, t0 + 0.07);
-    g.gain.exponentialRampToValueAtTime(0.0001, t0 + 1.35);
-    const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 1900;
+    g.gain.exponentialRampToValueAtTime(0.22, t0 + 0.06);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + 1.3);
+    const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 2100;
     o.connect(lp); lp.connect(g); g.connect(this.master);
     o.start(t0); o.stop(t0 + 1.4);
   }
   boom(delay, size) {
     if (!this.ctx || !this.enabled) return;
     const c = this.ctx, t0 = c.currentTime + delay;
-    const dur = 0.75 + size * 0.4;
+    const dur = 0.85 + size * 0.45;
     const buf = c.createBuffer(1, c.sampleRate * dur, c.sampleRate);
-    const d = buf.getChannelData(0);
-    for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length) ** 2.1;
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / data.length) ** 2.1;
     const src = c.createBufferSource(); src.buffer = buf;
     const g = c.createGain();
     g.gain.setValueAtTime(0.0001, t0);
-    g.gain.exponentialRampToValueAtTime(0.38 + size * 0.28, t0 + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.55 + size * 0.3, t0 + 0.02);
     g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
-    const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 480 + size * 380;
+    const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 520 + size * 420;
     src.connect(lp); lp.connect(g); g.connect(this.master);
     src.start(t0);
   }
   setSound(on) {
     this.enabled = on;
-    if (this.master) this.master.gain.value = on ? 0.88 : 0;
+    if (this.master) this.master.gain.value = on ? 1 : 0;
   }
 }
 const audio = new MovieAudio();
@@ -1232,9 +1253,10 @@ function animate(now) {
   }
 
   if (audio.crowdGain) {
-    const murmur = (shot.id === 'talk' || shot.id === 'field' || shot.id === 'path') ? 0.048 : 0.018;
-    audio.crowdGain.gain.value = audio.enabled ? murmur * (0.4 + glow * 2.2) : 0;
-    if (audio.windGain) audio.windGain.gain.value = audio.enabled ? 0.038 + glow * 0.02 : 0;
+    const murmur = (shot.id === 'talk' || shot.id === 'field' || shot.id === 'path') ? 0.1 : 0.045;
+    audio.crowdGain.gain.value = audio.enabled ? murmur * (0.75 + glow * 1.3) : 0;
+    if (audio.windGain) audio.windGain.gain.value = audio.enabled ? 0.11 + glow * 0.04 : 0;
+    if (audio.padGain) audio.padGain.gain.value = audio.enabled ? 0.05 + glow * 0.015 : 0;
   }
 
   if (shot.id === 'fireworks' || shot.id === 'finale') {
