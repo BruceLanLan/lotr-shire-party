@@ -879,6 +879,7 @@ function placeHobbit(x, z, role, yaw) {
   h.position.set(0.9, 1.32, -31.1);
   h.rotation.y = 0.3;
   h.userData.role = 'bilbo';
+  h.userData.baseY = 1.32;
   scene.add(h);
   hobbits.push(h);
   bilboRef.h = h;
@@ -1297,7 +1298,9 @@ function updateHobbits(t) {
       legL.rotation.x = Math.sin(ph2) * swing;
       legR.rotation.x = -Math.sin(ph2) * swing;
     }
-    h.position.y = (role === 'stroll' || role === 'lanewalk') ? bob : 0;
+    if (role === 'stroll' || role === 'lanewalk') h.position.y = bob;
+    else if (role === 'bilbo') h.position.y = (u.baseY || 0) + bob;
+    else if (role !== 'child') h.position.y = 0;
     head.rotation.x = lerp(nod, -0.78, lu);
     head.rotation.y = role === 'gossip' ? 0 : 0;
     head.rotation.z = 0;
