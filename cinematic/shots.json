@@ -1,0 +1,89 @@
+{
+  "title": "一场盼望已久的宴会 · A Long-expected Party",
+  "prompt_zh": "袋底洞的比尔博·巴金斯先生宣布，他不久将举办一场格外盛大的宴会，庆祝自己的一百一十一岁生日；霍比屯顿时议论纷纷，一片欢腾。",
+  "prompt_en": "When Mr. Bilbo Baggins of Bag End announced that he would shortly be celebrating his eleventy-first birthday with a party of special magnificence, there was much talk and excitement in Hobbiton.",
+  "source": "J. R. R. Tolkien, The Fellowship of the Ring — opening paragraph",
+  "film": "cinematic/long-expected-party.mp4",
+  "duration_s": 46,
+  "resolution": "1280x720",
+  "note": "Stills generated from the repo prompt; motion is cinematic Ken Burns (Imagine video API blocked on this workspace: ZDR requires upload_url).",
+  "shots": [
+    {
+      "id": "bagend",
+      "title_zh": "袋底洞",
+      "title_en": "Bag End",
+      "start": 0,
+      "dur": 6,
+      "still": "cinematic/stills/01-bagend.jpg",
+      "clip": "cinematic/shots/01-bagend.mp4",
+      "caption_zh": "袋底洞的比尔博·巴金斯先生宣布，他不久将庆祝自己的一百一十一岁生日……",
+      "caption_en": "When Mr. Bilbo Baggins of Bag End announced that he would shortly be celebrating his eleventy-first birthday…"
+    },
+    {
+      "id": "door",
+      "title_zh": "绿圆门",
+      "title_en": "The Round Door",
+      "start": 6,
+      "dur": 6,
+      "still": "cinematic/stills/02-door.jpg",
+      "clip": "cinematic/shots/02-door.mp4",
+      "caption_zh": "……举办一场格外盛大的宴会……",
+      "caption_en": "…with a party of special magnificence…"
+    },
+    {
+      "id": "field",
+      "title_zh": "宴会场",
+      "title_en": "The Party Field",
+      "start": 12,
+      "dur": 6,
+      "still": "cinematic/stills/03-field.jpg",
+      "clip": "cinematic/shots/03-field.mp4",
+      "caption_zh": "场地里支起帐篷和长桌，靠着那棵大树。",
+      "caption_en": "Tents and tables were raised in the field by the great tree."
+    },
+    {
+      "id": "talk",
+      "title_zh": "议论纷纷",
+      "title_en": "Much Talk",
+      "start": 18,
+      "dur": 6,
+      "still": "cinematic/stills/04-talk.jpg",
+      "clip": "cinematic/shots/04-talk.mp4",
+      "caption_zh": "霍比屯顿时议论纷纷，一片欢腾。",
+      "caption_en": "…and there was much talk and excitement in Hobbiton."
+    },
+    {
+      "id": "lanterns",
+      "title_zh": "灯笼",
+      "title_en": "Lanternlight",
+      "start": 24,
+      "dur": 6,
+      "still": "cinematic/stills/05-lanterns.jpg",
+      "clip": "cinematic/shots/05-lanterns.mp4",
+      "caption_zh": "暮色降临，灯笼一盏盏亮起来。",
+      "caption_en": "Lanterns were lit one by one as evening fell."
+    },
+    {
+      "id": "fireworks",
+      "title_zh": "烟花",
+      "title_en": "Fireworks over the Hill",
+      "start": 30,
+      "dur": 8,
+      "still": "cinematic/stills/06-fireworks.jpg",
+      "clip": "cinematic/shots/06-fireworks.mp4",
+      "caption_zh": "随后，山丘上方的天空绽放开来。",
+      "caption_en": "Then the sky above the Hill began to bloom."
+    },
+    {
+      "id": "finale",
+      "title_zh": "一场盼望已久的宴会",
+      "title_en": "A Long-expected Party",
+      "start": 38,
+      "dur": 8,
+      "still": "cinematic/stills/07-finale.jpg",
+      "clip": "cinematic/shots/07-finale.mp4",
+      "caption_zh": "这场宴会，霍比屯会记得很久。",
+      "caption_en": "It was a party long remembered in Hobbiton."
+    }
+  ]
+}

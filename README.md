@@ -1,7 +1,11 @@
 # 一场盼望已久的宴会 · A Long-expected Party
 
-> [English version below](#english-version) ｜ 在线观看 / Live demo:
-> **https://brucelanlan.github.io/lotr-shire-party/**
+> [English version below](#english-version)
+>
+> **Live demo**
+> - Three.js 程序化电影：<https://brucelanlan.github.io/lotr-shire-party/>
+> - 按原文 prompt 生成的七镜成片（中英字幕）：<https://brucelanlan.github.io/lotr-shire-party/cinematic.html>
+
 
 一个完整、自包含的 Three.js 场景：把《魔戒》开篇那段话，程序化地渲染成一部可以在浏览器里播放的"小电影"——
 
@@ -36,6 +40,24 @@
 
 声音同样全部由 WebAudio 实时合成（无音频文件）：风声、鸟鸣、人群嗡嗡声、
 火箭升空的哨音与爆炸声。
+
+## 影像成片（prompt → 七镜）
+
+按本 README 开篇那句提示词生成静帧，剪成 46 秒 720p 成片，并写好中英标注。
+
+| 时间 | 镜头 | 中文标注 |
+| --- | --- | --- |
+| 0–6s | 袋底洞 | 袋底洞的比尔博·巴金斯先生宣布，他不久将庆祝自己的一百一十一岁生日…… |
+| 6–12s | 绿圆门 | ……举办一场格外盛大的宴会…… |
+| 12–18s | 宴会场 | 场地里支起帐篷和长桌，靠着那棵大树。 |
+| 18–24s | 议论纷纷 | 霍比屯顿时议论纷纷，一片欢腾。 |
+| 24–30s | 灯笼 | 暮色降临，灯笼一盏盏亮起来。 |
+| 30–38s | 烟花 | 随后，山丘上方的天空绽放开来。 |
+| 38–46s | 终镜 | 这场宴会，霍比屯会记得很久。 |
+
+- 播放页：[`cinematic.html`](https://brucelanlan.github.io/lotr-shire-party/cinematic.html)
+- 成片：[`cinematic/long-expected-party.mp4`](https://brucelanlan.github.io/lotr-shire-party/cinematic/long-expected-party.mp4)
+- 标注：[`cinematic/shots.json`](cinematic/shots.json) · [`cinematic/captions.zh.vtt`](cinematic/captions.zh.vtt) · [`cinematic/captions.en.vtt`](cinematic/captions.en.vtt)
 
 ## 深链
 
